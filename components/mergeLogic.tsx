@@ -2,12 +2,11 @@ import { BigNumber } from './BigNumber';
 import { Grid } from './GameLogic';
 import { applyGravity } from './gravity';
 
-export const mergeTilesUntilStable = async (grid: Grid, colIndex: number): Promise<Grid> => {
+export const mergeTilesUntilStable = async (grid: Grid, colIndex?: number): Promise<Grid> => {
   let newGrid = grid.map(row => [...row]);
   let merged: boolean;
 
   do {
-    // Ждём выполнения асинхронной функции mergeTiles
     const result = await mergeTiles(newGrid, colIndex);
     newGrid = result.gridAfterMerge;
     merged = result.merged;
@@ -20,7 +19,7 @@ export const mergeTilesUntilStable = async (grid: Grid, colIndex: number): Promi
   return newGrid;
 };
 
-export const mergeTiles = async (grid: Grid, userColIndex: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
+export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
   const newGrid = grid.map(row => [...row]);
   const mergeTargets: { row: number, col: number, value: BigNumber }[] = [];
   let merged = false;
@@ -63,14 +62,11 @@ export const mergeTiles = async (grid: Grid, userColIndex: number): Promise<{ gr
     }
   }
 
-
-
   // Применяем новые значения для целевых блоков объединения
   for (const target of mergeTargets) {
     let targetCol = target.col;
-
     // Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    if (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1) {
+    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
       targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
     } else {
       // Если объединение произошло не в пользовательской колонке, ищем колонку, где блок изменил свою позицию

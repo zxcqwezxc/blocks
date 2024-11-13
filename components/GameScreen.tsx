@@ -8,6 +8,7 @@ import { BigNumber } from './BigNumber';
 import { BlockModal } from './BlockModal';
 import { applyGravity } from './gravity';
 import isEqual from 'lodash.isequal';
+import { mergeTilesUntilStable } from './mergeLogic';
 
 interface GameScreenProps {
   gameState: GameState | null;
@@ -26,12 +27,18 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
   const [removedBlock, setRemovedBlock] = useState<BigNumber | null>(null);
   const [newBlock, setNewBlock] = useState<BigNumber | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const gridRef = useRef(grid);
+
 
   useEffect(() => {
       console.log("Saving updated grid to gameState");
       setGameState({ grid });
   }, [grid, setGameState]);
   
+  useEffect(() => {
+    gridRef.current = grid;
+  }, [grid]);
+
   useEffect(() => {
     if (gameState?.grid && isEqual(grid, initializeGrid())) {
       console.log("Loading saved grid from gameState");
@@ -63,7 +70,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
   //   applyGravity(grid); // Применяем гравитацию после модальных окон
   // };
 
-  const updateAvailableBlocks = (newBlock: BigNumber) => {
+  const updateAvailableBlocks = (newBlock: BigNumber, newGrid: typeof grid) => {
     setAvailableBlocks((prevBlocks) => {
       const updatedBlocks = [...prevBlocks];
       updatedBlocks.shift(); // Удаляем минимальный блок
@@ -72,7 +79,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
       const minAvailableBlock = updatedBlocks[0];
       const removedBlocks: BigNumber[] = [];
   
-      const newGrid = grid.map(row => 
+      const updatedGrid = newGrid.map(row => 
         row.map(cell => {
           if (cell && cell.lessThan(minAvailableBlock)) {
             removedBlocks.push(cell); // Отслеживаем удалённые блоки
@@ -81,34 +88,42 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
           return cell;
         })
       );
-  
-      setGrid(newGrid);
       
-      if (nextTile.lessThan(minAvailableBlock)) {
-        setNextTile(getRandomTile());
-      }
+      setGrid(updatedGrid);
 
       setRemovedBlock(minAvailableBlock.divide(1));
       setNewBlock(newBlock);
-      setModalVisible(true);
-
       return updatedBlocks;
     });
+    setModalVisible(true);
   };
   
-  const handleModalClose = () => {
+  const handleModalClose = async () => {
     setModalVisible(false);
-    const updatedGrid = applyGravity(grid);
-    setGrid(updatedGrid);
-  };
   
+    setRemovedBlock(null);
+    setNewBlock(null);
+    // Вызываем последовательное объединение и гравитацию
+    let updatedGrid = await mergeTilesUntilStable(gridRef.current);
+    updatedGrid = applyGravity(updatedGrid);
+  
+    // Обновляем состояние сетки и nextTile
+    setGrid(updatedGrid);
+  
+    // Перезагружаем значение для следующего блока
+    const minTile = getMinTile();
+    const newNextTile = nextTile.lessThan(minTile) ? getRandomTile() : nextTile;
+    setNextTile(newNextTile);
+  };
   
   
   
   const onTilePress = async (colIndex: number) => {
     const { newGrid, mergedPositions } = await dropTile(grid, colIndex, nextTile, setGrid);
-    setGrid(newGrid);
+    //setGrid(newGrid);
+    setGameState({ grid: newGrid });
     setMergedTiles(mergedPositions);
+    gridRef.current = newGrid;
   
     const maxTile = newGrid.flat().filter((val): val is BigNumber => val !== null).reduce((max, tile) =>
       tile.greaterThan(max) ? tile : max, new BigNumber(1));
@@ -116,12 +131,19 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
     const maxAvailableBlock = availableBlocks[availableBlocks.length - 1];
     if (maxTile.greaterThan(maxAvailableBlock.multiply(2))) {
       const newBlock = maxAvailableBlock.multiply(1);
-      //setNewlyUnlockedBlocks([newBlock.toString()]); // Track unlocked block
-      updateAvailableBlocks(newBlock);
-      //setUnlockModalVisible(true); // Show unlock modal
+      // let updatedGrid = await mergeTilesUntilStable(newGrid);
+      // updatedGrid = applyGravity(updatedGrid);
+      updateAvailableBlocks(newBlock, newGrid);
+      //setModalVisible(true);
     }
   
     setNextTile(getRandomTile());
+  };
+
+  const getMinTile = (): BigNumber => {
+    const tiles = grid.flat().filter((tile): tile is BigNumber => tile !== null);
+    if (tiles.length === 0) return availableBlocks[0];
+    return tiles.reduce((minTile, tile) => (tile.lessThan(minTile) ? tile : minTile));
   };
   
   return (
@@ -130,7 +152,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
         isVisible={isModalVisible}
         removedBlock={removedBlock}
         newBlock={newBlock}
-        onClose={handleModalClose} // Применяем гравитацию после закрытия окна
+        onClose={handleModalClose}
       />
       <View style={styles.container}>
         <View style={styles.grid}>
