@@ -171,6 +171,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
                     <Tile
                       value={row[colIndex]}
                       rowIndex={rowIndex}
+                      prevRowIndex={gridRef.current[rowIndex][colIndex] ? rowIndex : 0}
                       isMerged={mergedTiles.some(tile => tile.row === rowIndex && tile.col === colIndex)}
                     />
                   )}
@@ -199,7 +200,8 @@ const styles = StyleSheet.create({
   column: {
     flexDirection: 'column',
     alignItems: 'center',
-    marginHorizontal: 2,
+    marginHorizontal: 1,
+    paddingRight: 2,
     borderRightWidth: 2,
     borderRightColor: '#888',
   },

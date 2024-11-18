@@ -21,7 +21,7 @@ export const BlockModal: React.FC<BlockModalProps> = ({ isVisible, removedBlock,
             {/* Удалённый блок */}
             <View style={styles.blockSection}>
               <Text style={styles.blockLabel}>Удалённый блок</Text>
-              <Tile value={removedBlock} rowIndex={0} isMerged={false} />
+              <Tile value={removedBlock} rowIndex={0} isMerged={false} prevRowIndex={0} />
             </View>
             
             {/* Разделительная линия */}
@@ -30,7 +30,7 @@ export const BlockModal: React.FC<BlockModalProps> = ({ isVisible, removedBlock,
             {/* Новый блок */}
             <View style={styles.blockSection}>
               <Text style={styles.blockLabel}>Новый блок</Text>
-              <Tile value={newBlock} rowIndex={0} isMerged={false} />
+              <Tile value={newBlock} rowIndex={0} isMerged={false} prevRowIndex={0} />
             </View>
           </View>
           
