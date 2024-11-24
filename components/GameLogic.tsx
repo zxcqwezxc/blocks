@@ -59,10 +59,10 @@ export const dropTile = async (
         // Устанавливаем новую сетку
         setGrid(newGrid);
 
-        newGrid = await mergeTilesUntilStable(newGrid, colIndex);
+        newGrid = await mergeTilesUntilStable(newGrid, setGrid, colIndex);
 
         // Применяем гравитацию
-        newGrid = applyGravity(newGrid);
+        newGrid = await applyGravity(newGrid, setGrid);
 
         return { newGrid, mergedPositions: [{ row: dropRowIndex, col: colIndex }] };
       } else {
@@ -83,7 +83,7 @@ export const dropTile = async (
   mergedPositions = getMergedPositions(newGrid, grid, colIndex); // Добавим функцию для поиска объединённых позиций
 
   // Применяем гравитацию снова после всех объединений и анимаций
-  newGrid = applyGravity(newGrid);
+  newGrid = await applyGravity(newGrid, setGrid);
 
   return { newGrid, mergedPositions };
 };
@@ -152,7 +152,7 @@ const handleDropAndMerge = async (
   setGrid(newGrid);
 
   // Применяем гравитацию после падения
-  newGrid = applyGravity(newGrid);
+  newGrid = await applyGravity(newGrid, setGrid);
   setGrid(newGrid);
 
   let hasMerged;
@@ -165,7 +165,7 @@ const handleDropAndMerge = async (
       setGrid(newGrid);
 
       // Применяем гравитацию после объединения
-      newGrid = applyGravity(newGrid);
+      newGrid = await applyGravity(newGrid, setGrid);
       setGrid(newGrid);
     }
   } while (hasMerged);

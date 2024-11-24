@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Tile from './Tile';
 import { initializeGrid, Grid, dropTile } from './GameLogic';
 import { GameState } from './storage';
@@ -104,8 +104,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
     setRemovedBlock(null);
     setNewBlock(null);
     // Вызываем последовательное объединение и гравитацию
-    let updatedGrid = await mergeTilesUntilStable(gridRef.current);
-    updatedGrid = applyGravity(updatedGrid);
+    let updatedGrid = await mergeTilesUntilStable(gridRef.current, setGrid);
+    updatedGrid = await applyGravity(updatedGrid, setGrid);
   
     // Обновляем состояние сетки и nextTile
     setGrid(updatedGrid);
@@ -161,22 +161,28 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
               key={colIndex}
               style={[styles.column, colIndex === 4 && styles.lastColumn]}
             >
-              {grid.map((row, rowIndex) => (
-                <TouchableOpacity
-                  key={rowIndex}
-                  onPress={() => onTilePress(colIndex)}
-                  style={styles.cell}
-                >
-                  {row[colIndex] && (
-                    <Tile
-                      value={row[colIndex]}
-                      rowIndex={rowIndex}
-                      prevRowIndex={gridRef.current[rowIndex][colIndex] ? rowIndex : 0}
-                      isMerged={mergedTiles.some(tile => tile.row === rowIndex && tile.col === colIndex)}
-                    />
-                  )}
-                </TouchableOpacity>
-              ))}
+              {grid && Array.isArray(grid) ? (
+                grid.map((row, rowIndex) => (
+                  <TouchableOpacity
+                    key={rowIndex}
+                    onPress={() => onTilePress(colIndex)}
+                    style={styles.cell}
+                  >
+                    {row[colIndex] && (
+                      <Tile
+                        value={row[colIndex]}
+                        rowIndex={rowIndex}
+                        prevRowIndex={gridRef.current[rowIndex][colIndex] ? rowIndex : 0}
+                        isMerged={mergedTiles.some(
+                          tile => tile.row === rowIndex && tile.col === colIndex
+                        )}
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text>Loading...</Text>
+              )}
             </View>
           ))}
         </View>
@@ -184,6 +190,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
       </View>
     </>
   );
+  
 };
 
 const styles = StyleSheet.create({
