@@ -31,6 +31,6 @@ export const applyGravity = async (
   return newGrid;
 };
 
-export const waitForAnimation = (duration: number = 300): Promise<void> => {
+export const waitForAnimation = (duration: number = 200): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, duration));
 };

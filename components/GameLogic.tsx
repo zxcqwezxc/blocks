@@ -5,7 +5,16 @@ import { BigNumber } from './BigNumber';
 
 
 
-export type Grid = (BigNumber | null)[][];
+export type GridCell = {
+  value: BigNumber;
+  currentRow: number;
+  currentCol: number;
+  targetRow: number | null;
+  targetCol: number | null;
+  isMerged: boolean;
+} | null;
+
+export type Grid = (GridCell | null)[][];
 
 export const handleSwipe = (grid: Grid, direction: string): Grid => {
   // Логика обработки свайпов (если понадобится)
@@ -42,7 +51,7 @@ export const dropTile = async (
   if (dropRowIndex === -1) {
       // Проверяем последний блок в столбце
       const lastBlockValue = grid[grid.length - 1][colIndex];
-      if (lastBlockValue && lastBlockValue.toNumber() === tileValue.toNumber()) {
+      if (lastBlockValue?.value && lastBlockValue.value.toNumber() === tileValue.toNumber()) {
         // Если значения совпадают, объединяем
         dropRowIndex = grid.length - 1; // Можем объединить с последним блоком
 
@@ -51,10 +60,10 @@ export const dropTile = async (
         newGrid[dropRowIndex][colIndex] = null; // Удаляем старый блок
 
         // Применяем новое значение
-        const combinedValue = lastBlockValue.multiply(1); // Объединяем значения
+        const combinedValue = lastBlockValue.value.multiply(1); // Объединяем значения
 
         // Устанавливаем новое значение в ячейку
-        newGrid[dropRowIndex][colIndex] = combinedValue;
+        newGrid[dropRowIndex][colIndex]!.value = combinedValue;
 
         // Устанавливаем новую сетку
         setGrid(newGrid);
@@ -71,7 +80,14 @@ export const dropTile = async (
   }
 
   let newGrid = grid.map(row => [...row]);
-  newGrid[dropRowIndex][colIndex] = tileValue;
+  newGrid[dropRowIndex][colIndex] = {
+    value: tileValue,
+    currentRow: dropRowIndex,
+    currentCol: colIndex,
+    targetRow: null,
+    targetCol: null,
+    isMerged: false
+  };
 
   // Отслеживаем позиции объединённых блоков
   let mergedPositions: { row: number, col: number }[] = [];
@@ -132,7 +148,7 @@ const checkIfMerged = (
   }
 
   // Проверяем, увеличилось ли значение блока
-  return newBlock.toNumber() > oldBlock.toNumber();
+  return newBlock.value.toNumber() > oldBlock.value.toNumber();
 };
 
 const handleDropAndMerge = async (
@@ -148,7 +164,14 @@ const handleDropAndMerge = async (
   const dropRowIndex = findDropPosition(newGrid, colIndex);
   if (dropRowIndex === -1) return newGrid;
 
-  newGrid[dropRowIndex][colIndex] = tileValue;
+  newGrid[dropRowIndex][colIndex] = {
+    value: tileValue,
+    currentRow: dropRowIndex,
+    currentCol: colIndex,
+    targetRow: null,
+    targetCol: null,
+    isMerged: false
+  };;
   setGrid(newGrid);
 
   // Применяем гравитацию после падения

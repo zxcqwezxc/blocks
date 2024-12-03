@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Tile from './Tile';
-import { initializeGrid, Grid, dropTile } from './GameLogic';
+import { initializeGrid, Grid, GridCell, dropTile } from './GameLogic';
 import { GameState } from './storage';
 import { NextTile } from './NextTile';
 import { BigNumber } from './BigNumber';
@@ -81,8 +81,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
   
       const updatedGrid = newGrid.map(row => 
         row.map(cell => {
-          if (cell && cell.lessThan(minAvailableBlock)) {
-            removedBlocks.push(cell); // Отслеживаем удалённые блоки
+          if (cell && cell.value.lessThan(minAvailableBlock)) {
+            removedBlocks.push(cell.value); // Отслеживаем удалённые блоки
             return null;
           }
           return cell;
@@ -125,11 +125,17 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
     setMergedTiles(mergedPositions);
     gridRef.current = newGrid;
   
-    const maxTile = newGrid.flat().filter((val): val is BigNumber => val !== null).reduce((max, tile) =>
-      tile.greaterThan(max) ? tile : max, new BigNumber(1));
+    const maxTile = newGrid
+    .flat()
+    .filter((val): val is GridCell => val !== null && val.value !== undefined) // Явная проверка на GridCell
+    .reduce((max, tile) =>
+      tile && max && tile.value.greaterThan(max.value) ? tile : max,
+      { value: new BigNumber(0), currentRow: 0, currentCol: 0, targetRow: null, targetCol: null, isMerged: false }
+    );
+  
   
     const maxAvailableBlock = availableBlocks[availableBlocks.length - 1];
-    if (maxTile.greaterThan(maxAvailableBlock.multiply(2))) {
+    if (maxTile && maxTile.value.greaterThan(maxAvailableBlock.multiply(2))) {
       const newBlock = maxAvailableBlock.multiply(1);
       // let updatedGrid = await mergeTilesUntilStable(newGrid);
       // updatedGrid = applyGravity(updatedGrid);
@@ -141,9 +147,16 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
   };
 
   const getMinTile = (): BigNumber => {
-    const tiles = grid.flat().filter((tile): tile is BigNumber => tile !== null);
+    const tiles = grid.flat().filter((tile): tile is GridCell => tile !== null);
     if (tiles.length === 0) return availableBlocks[0];
-    return tiles.reduce((minTile, tile) => (tile.lessThan(minTile) ? tile : minTile));
+  
+    const minTile = tiles.reduce((minTile, tile) =>
+      tile && minTile && tile.value.lessThan(minTile.value) ? tile : minTile,
+      tiles[0] // Установите первый элемент как начальное значение
+    );
+  
+    // Гарантируем возврат BigNumber, даже если reduce вернёт undefined
+    return minTile?.value ?? new BigNumber(0);
   };
   
   return (
@@ -169,14 +182,17 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
                     style={styles.cell}
                   >
                     {row[colIndex] && (
-                      <Tile
-                        value={row[colIndex]}
-                        rowIndex={rowIndex}
-                        prevRowIndex={gridRef.current[rowIndex][colIndex] ? rowIndex : 0}
-                        isMerged={mergedTiles.some(
-                          tile => tile.row === rowIndex && tile.col === colIndex
-                        )}
-                      />
+                     <Tile
+                     value={row[colIndex]?.value ?? new BigNumber(2)} // Значение по умолчанию
+                     rowIndex={rowIndex}
+                     colIndex={colIndex}
+                     targetRowIndex={rowIndex} // Значение по умолчанию
+                     targetColIndex={colIndex} // Значение по умолчанию
+                     isMerged={mergedTiles.some(tile => tile.row === rowIndex && tile.col === colIndex)}
+                     prevRowIndex={rowIndex} // Добавлено для соответствия TileProps
+                     prevColIndex={colIndex} // Добавлено для соответствия TileProps
+                   />
+                   
                     )}
                   </TouchableOpacity>
                 ))
@@ -208,7 +224,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     marginHorizontal: 1,
-    paddingRight: 2,
+    paddingRight: 5,
     borderRightWidth: 2,
     borderRightColor: '#888',
   },

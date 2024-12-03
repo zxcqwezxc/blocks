@@ -26,33 +26,54 @@ const getColorByValue = (value: BigNumber | null): string => {
 interface TileProps {
   value: BigNumber | null;
   rowIndex: number;
+  colIndex: number; // Добавлено для вычисления анимации по X
   prevRowIndex: number; // Начальная строка, откуда двигался блок
+  prevColIndex: number; // Начальный столбец, откуда двигался блок
+  targetRowIndex?: number | null; // Целевая строка
+  targetColIndex?: number | null; // Целевой столбец
   isMerged: boolean;
 }
 
-const Tile: React.FC<TileProps> = ({ value, rowIndex, prevRowIndex, isMerged }) => {
-  const translateY = useSharedValue(
-    prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex)
-  );
+const Tile: React.FC<TileProps> = ({
+  value,
+  rowIndex,
+  colIndex,
+  prevRowIndex,
+  prevColIndex,
+  targetRowIndex,
+  targetColIndex,
+  isMerged,
+}) => {
+  const translateX = useSharedValue(prevColIndex !== null ? prevColIndex : colIndex);
+  const translateY = useSharedValue(prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex));
   const scale = useSharedValue(1);
 
   useEffect(() => {
     if (value !== null) {
-      if (isMerged) {
+      if (isMerged && targetRowIndex !== null && targetColIndex !== null && targetRowIndex !== undefined && targetColIndex !== undefined) {
+        // Анимация перемещения к целевому блоку
+        translateX.value = withTiming(targetColIndex, { duration: 300 });
+        translateY.value = withTiming(targetRowIndex, { duration: 300 });
         scale.value = withSpring(1.2, { damping: 10 }, () => {
           scale.value = withSpring(1);
         });
       } else {
-        translateY.value = withTiming(0, { duration: 500 });
+        // Обычное движение вниз
+        translateX.value = withTiming(colIndex, { duration: 500 });
+        translateY.value = withTiming(rowIndex, { duration: 500 });
         scale.value = withSpring(1);
       }
     }
-  }, [value, rowIndex, isMerged]);
+  }, [value, rowIndex, colIndex, isMerged, targetRowIndex, targetColIndex]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       backgroundColor: value ? getColorByValue(value) : '#FFA726',
-      transform: [{ translateY: translateY.value }, { scale: scale.value }],
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+        { scale: scale.value },
+      ],
     };
   });
 
@@ -65,6 +86,7 @@ const Tile: React.FC<TileProps> = ({ value, rowIndex, prevRowIndex, isMerged }) 
 
 const styles = StyleSheet.create({
   tile: {
+    position: 'absolute',
     width: 70,
     height: 70,
     margin: 2,

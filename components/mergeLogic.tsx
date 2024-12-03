@@ -2,26 +2,38 @@ import { BigNumber } from './BigNumber';
 import { Grid } from './GameLogic';
 import { applyGravity } from './gravity';
 
-export const mergeTilesUntilStable = async (grid: Grid, setGrid: (grid: Grid) => void, colIndex?: number): Promise<Grid> => {
+export const mergeTilesUntilStable = async (
+  grid: Grid,
+  setGrid: (grid: Grid) => void,
+  colIndex?: number
+): Promise<Grid> => {
   let newGrid = grid.map(row => [...row]);
   let merged: boolean;
 
   do {
+    // Выполняем одно слияние и обновляем сетку
     const result = await mergeTiles(newGrid, colIndex);
     newGrid = result.gridAfterMerge;
     merged = result.merged;
 
     if (merged) {
+      // Обновляем состояние сетки для запуска анимации
+      setGrid(newGrid);
+
+      // Ждём завершения анимации перед применением гравитации
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Применяем гравитацию
       newGrid = await applyGravity(newGrid, setGrid);
+
+      // Ждём завершения анимации гравитации
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   } while (merged);
 
   return newGrid;
 };
 
-const waitForAnimation = (duration: number = 300): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, duration));
-};
 
 export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
   const newGrid = grid.map(row => [...row]);
@@ -33,6 +45,7 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
 
   // Массив для отслеживания перемещённых блоков с их новой позицией
   const movedBlocks: { col: number, row: number }[] = [];
+  const animateBlocks: { from: { row: number; col: number }; to: { row: number; col: number } }[] = [];
 
   // Ищем все возможные группы для объединения
   for (let rowIndex = 0; rowIndex < newGrid.length; rowIndex++) {
@@ -40,11 +53,17 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
       const tileValue = newGrid[rowIndex]?.[colIndex];
       if (tileValue === null || alreadyMerged[rowIndex][colIndex]) continue;
 
-      const mergeableTiles = getMergeableTiles(newGrid, rowIndex, colIndex, tileValue);
+      const mergeableTiles = getMergeableTiles(newGrid, rowIndex, colIndex, tileValue.value);
       if (mergeableTiles.length > 0) {
         // Рассчитываем новое значение для объединённого блока
-        const combinedValue = tileValue.multiply(mergeableTiles.length);
+        const combinedValue = tileValue.value.multiply(mergeableTiles.length);
 
+        mergeableTiles.forEach(tile => {
+          animateBlocks.push({
+            from: { row: tile.row, col: tile.col },
+            to: { row: rowIndex, col: colIndex },
+          });
+        });
 
         // Сохраняем информацию о том, где блоки изменили свою позицию после падения
         movedBlocks.push({ row: rowIndex, col: colIndex }, ...mergeableTiles);
@@ -84,7 +103,7 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
     // Найдём свободную позицию в колонке, чтобы разместить объединённый блок
     const lowestEmptyRow = findLowestEmptyRow(newGrid, targetCol);
     if (lowestEmptyRow !== -1) {
-      newGrid[lowestEmptyRow][targetCol] = target.value;
+      newGrid[lowestEmptyRow][targetCol] = { value: target.value, currentRow: lowestEmptyRow, currentCol: targetCol, targetRow: null, targetCol: null, isMerged: false };
     }
   }
 
@@ -118,7 +137,7 @@ const getMergeableTiles = (grid: Grid, startRow: number, startCol: number, value
     if (visited[row][col]) continue;
     visited[row][col] = true;
 
-    if ((grid[row][col])?.toNumber() === value.toNumber()) {
+    if ((grid[row][col])?.value.toNumber() === value.toNumber()) {
       mergeableTiles.push({ row, col });
 
       // Добавляем соседей в стек для проверки

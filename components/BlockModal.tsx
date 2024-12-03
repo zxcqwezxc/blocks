@@ -21,7 +21,7 @@ export const BlockModal: React.FC<BlockModalProps> = ({ isVisible, removedBlock,
             {/* Удалённый блок */}
             <View style={styles.blockSection}>
               <Text style={styles.blockLabel}>Удалённый блок</Text>
-              <Tile value={removedBlock} rowIndex={0} isMerged={false} prevRowIndex={0} />
+              <Tile value={removedBlock} rowIndex={0} isMerged={false} prevRowIndex={0} colIndex={0} prevColIndex={0} />
             </View>
             
             {/* Разделительная линия */}
@@ -30,7 +30,7 @@ export const BlockModal: React.FC<BlockModalProps> = ({ isVisible, removedBlock,
             {/* Новый блок */}
             <View style={styles.blockSection}>
               <Text style={styles.blockLabel}>Новый блок</Text>
-              <Tile value={newBlock} rowIndex={0} isMerged={false} prevRowIndex={0} />
+              <Tile value={newBlock} rowIndex={0} isMerged={false} prevRowIndex={0} colIndex={0} prevColIndex={0} />
             </View>
           </View>
           
@@ -50,6 +50,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.8)', // Темнее
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  tileInBox: {
+    position: 'relative'
   },
   modalContent: {
     width: 320,
