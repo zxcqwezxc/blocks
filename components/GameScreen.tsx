@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Tile from './Tile';
 import { initializeGrid, Grid, GridCell, dropTile } from './GameLogic';
-import { GameState } from './storage';
+import { AvailableBlocks, GameState } from './storage';
 import { NextTile } from './NextTile';
 import { BigNumber } from './BigNumber';
 import { BlockModal } from './BlockModal';
@@ -13,17 +13,19 @@ import { mergeTilesUntilStable } from './mergeLogic';
 interface GameScreenProps {
   gameState: GameState | null;
   setGameState: (state: GameState) => void;
+  DBBlocks: BigNumber[] | undefined;
+  setDBAvailableBlocks: (blocks: BigNumber[]) => void;
 }
 
-const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
+const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBlocks, setDBAvailableBlocks }) => {
   // Инициализация grid: если есть сохранённое состояние, загружаем его, иначе создаём пустую сетку
   const [grid, setGrid] = useState<Grid>(gameState?.grid || initializeGrid());
   const isInitialRender = useRef(true);
-  const [nextTile, setNextTile] = useState<BigNumber>(new BigNumber(4));
   const [mergedTiles, setMergedTiles] = useState<{ row: number, col: number }[]>([]);
-  const [availableBlocks, setAvailableBlocks] = useState<BigNumber[]>([
+  const [availableBlocks, setAvailableBlocks] = useState<BigNumber[]>(DBBlocks || [
     new BigNumber(1), new BigNumber(2), new BigNumber(4), new BigNumber(8), new BigNumber(16), new BigNumber(32)
   ]);
+  const [nextTile, setNextTile] = useState<BigNumber>(DBBlocks && DBBlocks[0] || availableBlocks[0]);
   const [removedBlock, setRemovedBlock] = useState<BigNumber | null>(null);
   const [newBlock, setNewBlock] = useState<BigNumber | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
@@ -45,6 +47,19 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
       setGrid(gameState.grid);
     }
   }, [gameState]);
+
+  useEffect(() => {
+    console.log("Saving updated availbleBlocks");
+    setDBAvailableBlocks(availableBlocks);
+  }, [availableBlocks, setDBAvailableBlocks]);
+
+  useEffect(() => {
+    if (DBBlocks) {
+      console.log("Loading saved blocks from DBBLocks");
+      setNextTile(DBBlocks[0]);
+      setAvailableBlocks(DBBlocks);
+    }
+  }, [DBBlocks]);
 
   const getRandomTile = (): BigNumber => {
     let randomTile: BigNumber;
@@ -71,7 +86,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
   // };
 
   const updateAvailableBlocks = (newBlock: BigNumber, newGrid: typeof grid) => {
-    setAvailableBlocks((prevBlocks) => {
+    setAvailableBlocks((prevBlocks: BigNumber[]) => {
       const updatedBlocks = [...prevBlocks];
       updatedBlocks.shift(); // Удаляем минимальный блок
       updatedBlocks.push(newBlock); // Добавляем новый блок
@@ -95,6 +110,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState }) => {
       setNewBlock(newBlock);
       return updatedBlocks;
     });
+    setDBAvailableBlocks(availableBlocks);
     setModalVisible(true);
   };
   
