@@ -202,8 +202,8 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
                      value={row[colIndex]?.value ?? new BigNumber(2)} // Значение по умолчанию
                      rowIndex={rowIndex}
                      colIndex={colIndex}
-                     targetRowIndex={rowIndex} // Значение по умолчанию
-                     targetColIndex={colIndex} // Значение по умолчанию
+                     targetRowIndex={row[colIndex]?.targetRow}
+                     targetColIndex={row[colIndex]?.targetCol}
                      isMerged={mergedTiles.some(tile => tile.row === rowIndex && tile.col === colIndex)}
                      prevRowIndex={rowIndex} // Добавлено для соответствия TileProps
                      prevColIndex={colIndex} // Добавлено для соответствия TileProps

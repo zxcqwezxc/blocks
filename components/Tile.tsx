@@ -8,6 +8,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BigNumber } from './BigNumber';
 
+const TILE_SIZE = 70;
+const TILE_MARGIN = 2;
+
 const COLORS = [
   '#556B2F', '#6A5ACD', '#2F4F4F', '#708090', '#4682B4', '#8FBC8F', '#5F9EA0', '#7B68EE',
   '#483D8B', '#6B8E23', '#8B4513', '#A0522D', '#D2B48C', '#B8860B', '#CD853F', '#BC8F8F',
@@ -16,10 +19,13 @@ const COLORS = [
   '#87CEFA', '#778899', '#B0C4DE', '#ADD8E6', '#90EE90', '#98FB98', '#D3D3D3', '#778899',
 ];
 
-const getColorByValue = (value: BigNumber | null): string => {
-  if (value === null) return '#FFA726';
-  const numValue = value.toNumber();
-  const index = Math.log2(numValue) % COLORS.length;
+const getColorIndexByValue = (value: BigNumber): number => {
+  const numericValue = Math.floor(value.toNumber());
+  return numericValue % COLORS.length; // Cyclically wrap the index
+};
+
+const getColorByValue = (value: BigNumber): string => {
+  const index = getColorIndexByValue(value);
   return COLORS[index];
 };
 
@@ -50,7 +56,7 @@ const Tile: React.FC<TileProps> = ({
 
   useEffect(() => {
     if (value !== null) {
-      if (isMerged && targetRowIndex !== null && targetColIndex !== null && targetRowIndex !== undefined && targetColIndex !== undefined) {
+      if (targetRowIndex !== null && targetColIndex !== null && targetRowIndex !== undefined && targetColIndex !== undefined) {
         // Анимация перемещения к целевому блоку
         translateX.value = withTiming(targetColIndex, { duration: 300 });
         translateY.value = withTiming(targetRowIndex, { duration: 300 });

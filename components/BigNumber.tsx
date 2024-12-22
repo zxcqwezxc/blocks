@@ -72,8 +72,12 @@ export class BigNumber {
     }
 
     public equals(other: BigNumber): boolean {
-      return this.value === other.value && this.suffix === other.suffix;
-    }
+      const thisIntegerPart = Math.floor(Number(this.value));
+      const otherIntegerPart = Math.floor(Number(other.value));
+      
+      //Getting only int part cause sometimes numbers double value ain't equals, though suffix and int part eq
+      return thisIntegerPart === otherIntegerPart && this.suffix === other.suffix;
+  }
 
   }
   

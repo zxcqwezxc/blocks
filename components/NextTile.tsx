@@ -15,12 +15,13 @@ const COLORS = [
 ];
 
 
-const getColorByValue = (value: BigNumber | null): string => {
-  if (value === null) return '#FFA726';
-  
-  const numValue = value.toNumber(); // Получаем числовое значение из BigNumber
-  const index = Math.log2(numValue) % COLORS.length;
-  
+const getColorIndexByValue = (value: BigNumber): number => {
+  const numericValue = Math.floor(value.toNumber());
+  return numericValue % COLORS.length; // Cyclically wrap the index
+};
+
+const getColorByValue = (value: BigNumber): string => {
+  const index = getColorIndexByValue(value);
   return COLORS[index];
 };
 

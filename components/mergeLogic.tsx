@@ -37,6 +37,7 @@ export const mergeTilesUntilStable = async (
 
 export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
   const newGrid = grid.map(row => [...row]);
+  
   const mergeTargets: { row: number, col: number, value: BigNumber }[] = [];
   let merged = false;
   
@@ -57,6 +58,22 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
       if (mergeableTiles.length > 0) {
         // Рассчитываем новое значение для объединённого блока
         const combinedValue = tileValue.value.multiply(mergeableTiles.length);
+
+        const targetRow = rowIndex; // Целевая строка для нового блока
+        const targetCol = colIndex; // Целевая колонка для нового блока
+
+        for (const mergeTile of mergeableTiles) {
+          if (newGrid[mergeTile.row][mergeTile.col]?.value) {
+            newGrid[mergeTile.row][mergeTile.col] = {
+              targetRow,
+              targetCol,
+              value: newGrid[mergeTile.row][mergeTile.col]?.value || new BigNumber(4),
+              currentRow: mergeTile.row,
+              currentCol: mergeTile.col,
+              isMerged: false,
+            };
+          }
+        }
 
         mergeableTiles.forEach(tile => {
           animateBlocks.push({
@@ -137,7 +154,7 @@ const getMergeableTiles = (grid: Grid, startRow: number, startCol: number, value
     if (visited[row][col]) continue;
     visited[row][col] = true;
 
-    if ((grid[row][col])?.value.toNumber() === value.toNumber()) {
+    if ((grid[row][col])?.value.equals(value)) {
       mergeableTiles.push({ row, col });
 
       // Добавляем соседей в стек для проверки
