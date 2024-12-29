@@ -75,7 +75,7 @@ export class BigNumber {
       const thisIntegerPart = Math.floor(Number(this.value));
       const otherIntegerPart = Math.floor(Number(other.value));
       
-      //Getting only int part cause sometimes numbers double value ain't equals, though suffix and int part eq
+      //Иногда из-за возведения в степень дробная часть может отличаться, поэтому смотрю только на целую и суффикс
       return thisIntegerPart === otherIntegerPart && this.suffix === other.suffix;
   }
 

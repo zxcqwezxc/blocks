@@ -107,15 +107,15 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
     let targetCol = target.col;
     //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
     // Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
-      targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
-    } else {
+    // if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
+    //   targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
+    // } else {
       // Если объединение произошло не в пользовательской колонке, ищем колонку, где блок изменил свою позицию
       const movedBlock = movedBlocks.find(mb => mb.row === target.row && mb.col !== targetCol);
       if (movedBlock) {
         targetCol = movedBlock.col;  // Оставляем блок в колонке, где он изменил свою позицию
       }
-    }
+//    }
 
     // Найдём свободную позицию в колонке, чтобы разместить объединённый блок
     const lowestEmptyRow = findLowestEmptyRow(newGrid, targetCol);

@@ -1,10 +1,24 @@
 import { Grid } from './GameLogic';
 
+export const waitForAnimation = (duration: number = 300): Promise<void> => {
+  return new Promise(resolve => setTimeout(resolve, duration));
+};
+
 export const applyGravity = async (
   grid: Grid,
   setGrid: (grid: Grid) => void,
 ): Promise<Grid> => {
-  const newGrid = grid.map(row => [...row]);
+  const newGrid = grid.map(row =>
+    row.map(cell =>
+      cell
+        ? {
+            ...cell,
+            targetRow: cell.targetRow ?? null, // Явно устанавливаем тип null
+            targetCol: cell.targetCol ?? null, // Явно устанавливаем тип null
+          }
+        : null
+    )
+  );
 
   for (let col = 0; col < newGrid[0].length; col++) {
     let emptyRow = -1;
@@ -15,22 +29,26 @@ export const applyGravity = async (
           emptyRow = row; // Находим первую пустую ячейку
         }
       } else if (emptyRow !== -1) {
-        // Перемещаем блок вниз
-        newGrid[emptyRow][col] = newGrid[row]?.[col] ?? null;
-        newGrid[row][col] = null;
+        const movingTile = newGrid[row][col];
+        if (movingTile) {
+          movingTile.targetRow = emptyRow; // Устанавливаем новую строку
+          movingTile.targetCol = col;     // Устанавливаем новую колонку
+        }
 
-        // Обновляем состояние и ждем завершения анимации
-        setGrid([...newGrid]);
-        await waitForAnimation(); // Ожидаем завершения текущей анимации
+        // Перемещаем блок вниз
+        newGrid[emptyRow][col] = {
+          ...movingTile!,
+          currentRow: emptyRow, // Обновляем текущую строку
+          currentCol: col,      // Обновляем текущую колонку
+        };
+        newGrid[row][col] = null;
 
         emptyRow++;
       }
     }
   }
 
+  setGrid([...newGrid]); // Обновляем сетку для анимации
+  await waitForAnimation(); // Ждем завершения анимации
   return newGrid;
-};
-
-export const waitForAnimation = (duration: number = 200): Promise<void> => {
-  return new Promise(resolve => setTimeout(resolve, duration));
 };

@@ -63,7 +63,14 @@ export const dropTile = async (
         const combinedValue = lastBlockValue.value.multiply(1); // Объединяем значения
 
         // Устанавливаем новое значение в ячейку
-        newGrid[dropRowIndex][colIndex]!.value = combinedValue;
+        newGrid[dropRowIndex][colIndex] = {
+          value: combinedValue, // Значение блока
+          currentRow: dropRowIndex, // Текущая строка
+          currentCol: colIndex, // Текущая колонка
+          targetRow: null, // Сброс targetRow
+          targetCol: null, // Сброс targetCol
+          isMerged: false, 
+        };
 
         // Устанавливаем новую сетку
         setGrid(newGrid);

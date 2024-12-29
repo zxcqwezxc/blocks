@@ -65,8 +65,8 @@ const Tile: React.FC<TileProps> = ({
         });
       } else {
         // Обычное движение вниз
-        translateX.value = withTiming(colIndex, { duration: 500 });
-        translateY.value = withTiming(rowIndex, { duration: 500 });
+        translateX.value = withTiming(colIndex, { duration: 300 });
+        translateY.value = withTiming(rowIndex, { duration: 300 });
         scale.value = withSpring(1);
       }
     }
