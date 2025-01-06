@@ -27,7 +27,7 @@ export const mergeTilesUntilStable = async (
       newGrid = await applyGravity(newGrid, setGrid);
 
       // Ждём завершения анимации гравитации
-      await new Promise(resolve => setTimeout(resolve, 500));
+      //await new Promise(resolve => setTimeout(resolve, 500));
     }
   } while (merged);
 
@@ -46,7 +46,7 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
 
   // Массив для отслеживания перемещённых блоков с их новой позицией
   const movedBlocks: { col: number, row: number }[] = [];
-  const animateBlocks: { from: { row: number; col: number }; to: { row: number; col: number } }[] = [];
+
 
   // Ищем все возможные группы для объединения
   for (let rowIndex = 0; rowIndex < newGrid.length; rowIndex++) {
@@ -59,28 +59,29 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
         // Рассчитываем новое значение для объединённого блока
         const combinedValue = tileValue.value.multiply(mergeableTiles.length);
 
-        const targetRow = rowIndex; // Целевая строка для нового блока
-        const targetCol = colIndex; // Целевая колонка для нового блока
+        // mergeableTiles.forEach(tile => {
+        //   const movingTile = newGrid[tile.row][tile.col];
+        //   if (movingTile) {
+        //     movingTile.targetRow = rowIndex;
+        //     movingTile.targetCol = colIndex;
+        //   }
+        // });
 
-        for (const mergeTile of mergeableTiles) {
-          if (newGrid[mergeTile.row][mergeTile.col]?.value) {
-            newGrid[mergeTile.row][mergeTile.col] = {
-              targetRow,
-              targetCol,
-              value: newGrid[mergeTile.row][mergeTile.col]?.value || new BigNumber(4),
-              currentRow: mergeTile.row,
-              currentCol: mergeTile.col,
-              isMerged: false,
-            };
-          }
-        }
+        // const targetRow = rowIndex; // Целевая строка для нового блока
+        // const targetCol = colIndex; // Целевая колонка для нового блока
 
-        mergeableTiles.forEach(tile => {
-          animateBlocks.push({
-            from: { row: tile.row, col: tile.col },
-            to: { row: rowIndex, col: colIndex },
-          });
-        });
+        // for (const mergeTile of mergeableTiles) {
+        //   if (newGrid[mergeTile.row][mergeTile.col]?.value) {
+        //     newGrid[mergeTile.row][mergeTile.col] = {
+        //       targetRow: rowIndex,
+        //       targetCol: userColIndex || null,
+        //       value: newGrid[mergeTile.row][mergeTile.col]?.value || new BigNumber(4),
+        //       currentRow: mergeTile.row,
+        //       currentCol: mergeTile.col,
+        //       isMerged: false,
+        //     };
+        //   }
+        // }
 
         // Сохраняем информацию о том, где блоки изменили свою позицию после падения
         movedBlocks.push({ row: rowIndex, col: colIndex }, ...mergeableTiles);
@@ -90,8 +91,38 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
 
         // Помечаем клетки, участвующие в объединении, как объединенные
         alreadyMerged[rowIndex][colIndex] = true;
+
+        for (const tile of movedBlocks) {
+          alreadyMerged[tile.row][tile.col] = true;
+          const tileCell = newGrid[tile.row]?.[tile.col];
+          
+          if (tileCell) {
+            if (userColIndex && (tileCell.currentCol == userColIndex + 1 ||  tileCell.currentCol == userColIndex - 1)) {
+              tileCell.targetCol = userColIndex;
+              tileCell.targetRow = rowIndex;
+              newGrid[tile.row][tile.col] = { value: tileCell.value, currentRow: tile.row, currentCol: tile.col, targetRow: tileCell?.targetRow, targetCol: tileCell.targetCol, isMerged: false };
+            }
+            if (userColIndex && tileCell.currentCol == userColIndex) {
+              tileCell.targetCol = userColIndex;
+              tileCell.targetRow = rowIndex;
+              newGrid[tile.row][tile.col] = { value: tileCell.value, currentRow: tile.row, currentCol: tile.col, targetRow: tileCell?.targetRow, targetCol: tileCell.targetCol, isMerged: false };
+            }
+              // tileCell.targetCol = colIndex || null;
+              // tileCell.targetRow = rowIndex || null; 
+          }
+          await new Promise(resolve => setTimeout(resolve, 300));
+          //newGrid[tile.row][tile.col].targetCol = colIndex || null;
+          
+        }
+
         for (const tile of mergeableTiles) {
           alreadyMerged[tile.row][tile.col] = true;
+          // const tileCell = newGrid[tile.row]?.[tile.col];
+          // if (tileCell) {
+          //     tileCell.targetCol = colIndex || null;
+          //     tileCell.targetRow = rowIndex || null;
+          // }
+          // //newGrid[tile.row][tile.col].targetCol = colIndex || null;
           newGrid[tile.row][tile.col] = null; // Удаляем объединённые блоки
         }
 
@@ -106,21 +137,24 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
   for (const target of mergeTargets) {
     let targetCol = target.col;
     //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
-    // Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    // if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
-    //   targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
-    // } else {
+    //Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
+    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
+      targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
+      // newGrid[target.row][target.col] = { value: target.value, currentRow: target.row, currentCol: target.col, targetRow: target.row, targetCol: targetCol, isMerged: false };
+      // await new Promise(resolve => setTimeout(resolve, 300));
+      // newGrid[target.row][target.col] = null;
+    } else {
       // Если объединение произошло не в пользовательской колонке, ищем колонку, где блок изменил свою позицию
       const movedBlock = movedBlocks.find(mb => mb.row === target.row && mb.col !== targetCol);
       if (movedBlock) {
         targetCol = movedBlock.col;  // Оставляем блок в колонке, где он изменил свою позицию
       }
-//    }
+    }
 
     // Найдём свободную позицию в колонке, чтобы разместить объединённый блок
     const lowestEmptyRow = findLowestEmptyRow(newGrid, targetCol);
     if (lowestEmptyRow !== -1) {
-      newGrid[lowestEmptyRow][targetCol] = { value: target.value, currentRow: lowestEmptyRow, currentCol: targetCol, targetRow: null, targetCol: null, isMerged: false };
+      newGrid[lowestEmptyRow][targetCol] = { value: target.value, currentRow: lowestEmptyRow, currentCol: targetCol, targetRow: lowestEmptyRow, targetCol: targetCol, isMerged: false };
     }
   }
 
@@ -128,7 +162,9 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
 };
 
 
+// const animateTileMerging = async (row: number, col: number, targetRow: number, targetCol: number): Promise<T> {
 
+// }
 
 
 // Функция для поиска самой нижней свободной строки в столбце

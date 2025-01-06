@@ -91,8 +91,8 @@ export const dropTile = async (
     value: tileValue,
     currentRow: dropRowIndex,
     currentCol: colIndex,
-    targetRow: null,
-    targetCol: null,
+    targetRow: grid[dropRowIndex][colIndex]?.targetRow || null,
+    targetCol: grid[dropRowIndex][colIndex]?.targetCol || null,
     isMerged: false
   };
 

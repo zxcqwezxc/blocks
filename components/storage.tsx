@@ -62,11 +62,11 @@ export const loadAvailableBlocks = async (): Promise<AvailableBlocks> => {
     if (!jsonValue) {
       return { availableBlocks: [
         new BigNumber(1),
-        new BigNumber(2),
-        new BigNumber(4),
-        new BigNumber(8),
-        new BigNumber(16),
-        new BigNumber(32)
+        new BigNumber(1),
+        new BigNumber(1),
+        new BigNumber(1),
+        new BigNumber(1),
+        new BigNumber(1)
       ]};
     } 
 
@@ -81,11 +81,11 @@ export const loadAvailableBlocks = async (): Promise<AvailableBlocks> => {
     console.error('Failed to load the game state.', e);
     return { availableBlocks: [
       new BigNumber(1),
-      new BigNumber(2),
-      new BigNumber(4),
-      new BigNumber(8),
-      new BigNumber(16),
-      new BigNumber(32)
+      new BigNumber(1),
+      new BigNumber(1),
+      new BigNumber(1),
+      new BigNumber(1),
+      new BigNumber(1)
     ]};
   }
 };
