@@ -12,7 +12,7 @@ export const mergeTilesUntilStable = async (
 
   do {
     // Выполняем одно слияние и обновляем сетку
-    const result = await mergeTiles(newGrid, colIndex);
+    const result = await mergeTiles(newGrid, setGrid, colIndex);
     newGrid = result.gridAfterMerge;
     merged = result.merged;
 
@@ -21,7 +21,7 @@ export const mergeTilesUntilStable = async (
       setGrid(newGrid);
 
       // Ждём завершения анимации перед применением гравитации
-      await new Promise(resolve => setTimeout(resolve, 300));
+      //await new Promise(resolve => setTimeout(resolve, 300));
 
       // Применяем гравитацию
       newGrid = await applyGravity(newGrid, setGrid);
@@ -35,7 +35,7 @@ export const mergeTilesUntilStable = async (
 };
 
 
-export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
+export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
   const newGrid = grid.map(row => [...row]);
   
   const mergeTargets: { row: number, col: number, value: BigNumber }[] = [];
@@ -110,6 +110,7 @@ export const mergeTiles = async (grid: Grid, userColIndex?: number): Promise<{ g
               // tileCell.targetCol = colIndex || null;
               // tileCell.targetRow = rowIndex || null; 
           }
+          setGrid([...newGrid]);
           await new Promise(resolve => setTimeout(resolve, 300));
           //newGrid[tile.row][tile.col].targetCol = colIndex || null;
           

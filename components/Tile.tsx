@@ -8,8 +8,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { BigNumber } from './BigNumber';
 
-const TILE_SIZE = 70;
-const TILE_MARGIN = 2;
+const TILE_SIZE = 70; // Используем размер ячейки сетки
+const GRID_HEIGHT = 7; // Высота сетки для расчёта вертикальной позиции
 
 const COLORS = [
   '#556B2F', '#6A5ACD', '#2F4F4F', '#708090', '#4682B4', '#8FBC8F', '#5F9EA0', '#7B68EE',
@@ -19,24 +19,19 @@ const COLORS = [
   '#87CEFA', '#778899', '#B0C4DE', '#ADD8E6', '#90EE90', '#98FB98', '#D3D3D3', '#778899',
 ];
 
-const getColorIndexByValue = (value: BigNumber): number => {
-  const numericValue = Math.floor(value.toNumber());
-  return numericValue % COLORS.length; // Cyclically wrap the index
-};
-
 const getColorByValue = (value: BigNumber): string => {
-  const index = getColorIndexByValue(value);
+  const index = Math.floor(value.toNumber()) % COLORS.length;
   return COLORS[index];
 };
 
 interface TileProps {
   value: BigNumber | null;
   rowIndex: number;
-  colIndex: number; // Добавлено для вычисления анимации по X
-  prevRowIndex: number; // Начальная строка, откуда двигался блок
-  prevColIndex: number; // Начальный столбец, откуда двигался блок
-  targetRowIndex?: number | null; // Целевая строка
-  targetColIndex?: number | null; // Целевой столбец
+  colIndex: number;
+  prevRowIndex: number;
+  prevColIndex: number;
+  targetRowIndex?: number | null;
+  targetColIndex?: number | null;
   isMerged: boolean;
 }
 
@@ -50,38 +45,39 @@ const Tile: React.FC<TileProps> = ({
   targetColIndex,
   isMerged,
 }) => {
-  const translateX = useSharedValue(prevColIndex !== null ? prevColIndex : colIndex);
+  const translateX = useSharedValue(prevColIndex);
   const translateY = useSharedValue(prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex));
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    if (value !== null) {
-      if (targetRowIndex !== null && targetColIndex !== null && targetRowIndex !== undefined && targetColIndex !== undefined) {
-        // Анимация перемещения к целевому блоку
-        translateX.value = withTiming(targetColIndex, { duration: 300 });
-        translateY.value = withTiming(targetRowIndex, { duration: 300 });
-        scale.value = withSpring(1.2, { damping: 10 }, () => {
-          scale.value = withSpring(1);
-        });
-      } else {
+    if (value !== null && targetRowIndex !== null && targetColIndex !== null && targetColIndex != undefined && targetRowIndex != undefined) {
+      if (targetColIndex > colIndex) {
+        translateX.value = withTiming(targetColIndex + 80, { duration: 300 });
+      }
+      if (targetColIndex < colIndex) {
+        translateX.value = withTiming(targetColIndex - 80, { duration: 300 });
+      }
+      // Анимация перемещения
+      translateY.value = withTiming(targetRowIndex, { duration: 300 });
+      scale.value = withSpring(1.2, { damping: 10 }, () => {
+        scale.value = withSpring(1);
+      });
+    } else {
         // Обычное движение вниз
         translateX.value = withTiming(colIndex, { duration: 300 });
         translateY.value = withTiming(rowIndex, { duration: 300 });
         scale.value = withSpring(1);
       }
-    }
-  }, [value, rowIndex, colIndex, isMerged, targetRowIndex, targetColIndex]);
+  }, [value, targetRowIndex, targetColIndex]);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      backgroundColor: value ? getColorByValue(value) : '#FFA726',
-      transform: [
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-        { scale: scale.value },
-      ],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: value ? getColorByValue(value) : '#FFA726',
+    transform: [
+      { translateX: translateX.value },
+      { translateY: translateY.value },
+      { scale: scale.value },
+    ],
+  }));
 
   return (
     <Animated.View style={[styles.tile, animatedStyle]}>
@@ -93,8 +89,8 @@ const Tile: React.FC<TileProps> = ({
 const styles = StyleSheet.create({
   tile: {
     position: 'absolute',
-    width: 70,
-    height: 70,
+    width: TILE_SIZE,
+    height: TILE_SIZE,
     margin: 2,
     justifyContent: 'center',
     alignItems: 'center',

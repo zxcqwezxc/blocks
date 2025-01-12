@@ -187,7 +187,7 @@ const handleDropAndMerge = async (
 
   let hasMerged;
   do {
-    const mergingResult = await mergeTiles(newGrid, colIndex);
+    const mergingResult = await mergeTiles(newGrid, setGrid, colIndex);
     hasMerged = mergingResult.merged;
 
     if (hasMerged) {
