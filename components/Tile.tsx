@@ -57,8 +57,11 @@ const Tile: React.FC<TileProps> = ({
       if (targetColIndex < colIndex) {
         translateX.value = withTiming(targetColIndex - 80, { duration: 300 });
       }
+      if (targetRowIndex < rowIndex) {
+        translateY.value = withTiming(targetRowIndex - 80, { duration: 300 });
+      }
       // Анимация перемещения
-      translateY.value = withTiming(targetRowIndex, { duration: 300 });
+      //translateY.value = withTiming(targetRowIndex, { duration: 300 });
       scale.value = withSpring(1.2, { damping: 10 }, () => {
         scale.value = withSpring(1);
       });
