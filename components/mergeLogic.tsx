@@ -145,7 +145,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
             }
           }
           setGrid([...newGrid]);
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 100));
           //newGrid[tile.row][tile.col].targetCol = colIndex || null;
           
         }
@@ -171,9 +171,13 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
   // Применяем новые значения для целевых блоков объединения
   for (const target of mergeTargets) {
     let targetCol = target.col;
+    let targetRow = target.row;
+    if (userColIndex != undefined) {
+      targetRow = findLowestEmptyRow(newGrid, userColIndex);
+    }
     //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
     //Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)) {
+    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1) && target.row == targetRow) {
       targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
       // newGrid[target.row][target.col] = { value: target.value, currentRow: target.row, currentCol: target.col, targetRow: target.row, targetCol: targetCol, isMerged: false };
       // await new Promise(resolve => setTimeout(resolve, 300));

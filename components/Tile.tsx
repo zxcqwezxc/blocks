@@ -52,13 +52,13 @@ const Tile: React.FC<TileProps> = ({
   useEffect(() => {
     if (value !== null && targetRowIndex !== null && targetColIndex !== null && targetColIndex != undefined && targetRowIndex != undefined) {
       if (targetColIndex > colIndex) {
-        translateX.value = withTiming(targetColIndex + 80, { duration: 300 });
+        translateX.value = withTiming(targetColIndex + 80, { duration: 100 });
       }
       if (targetColIndex < colIndex) {
-        translateX.value = withTiming(targetColIndex - 80, { duration: 300 });
+        translateX.value = withTiming(targetColIndex - 80, { duration: 100 });
       }
       if (targetRowIndex < rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80, { duration: 300 });
+        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 100 });
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
