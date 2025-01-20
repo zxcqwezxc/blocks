@@ -1,6 +1,6 @@
 import { Grid } from './GameLogic';
 
-export const waitForAnimation = (duration: number = 300): Promise<void> => {
+export const waitForAnimation = (duration: number = 100): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, duration));
 };
 
@@ -31,7 +31,7 @@ export const applyGravity = async (
       } else if (emptyRow !== -1) {
         const movingTile = newGrid[row][col];
         if (movingTile) {
-          movingTile.targetRow = emptyRow; // Устанавливаем новую строку
+          movingTile.targetRow = 6 - emptyRow; // Устанавливаем новую строку
           movingTile.targetCol = col;     // Устанавливаем новую колонку
         }
 
