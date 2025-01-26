@@ -115,9 +115,11 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
             }
 
             // Логика для userColIndex
+            if (userColIndex && tileCell.value != undefined) {
             if (
               userColIndex &&
               (tileCell.currentCol == userColIndex + 1 || tileCell.currentCol == userColIndex - 1)
+              && tileCell.value.equals(newGrid[tileCell.currentRow][userColIndex]?.value)
             ) {
               tileCell.targetCol = userColIndex;
               tileCell.targetRow = tile.row; // Оставляем строку без изменений
@@ -144,6 +146,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
               };
             }
           }
+          }
           setGrid([...newGrid]);
           await new Promise(resolve => setTimeout(resolve, 100));
           //newGrid[tile.row][tile.col].targetCol = colIndex || null;
@@ -169,6 +172,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
   }
 
   // Применяем новые значения для целевых блоков объединения
+  //TODO разобраться с логикой targetCol тут
   for (const target of mergeTargets) {
     let targetCol = target.col;
     let targetRow = target.row;
@@ -177,7 +181,8 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
     }
     //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
     //Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)  && (6 - target.row == targetRow)) {
+    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)  && (6 - target.row == targetRow)
+    && newGrid[targetRow]?.[targetCol]?.value.equals(newGrid[targetRow]?.[userColIndex]?.value)) {
       // && target.row == targetRow
       targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
     } else {

@@ -71,7 +71,10 @@ export class BigNumber {
       return this.value < other.value;
     }
 
-    public equals(other: BigNumber): boolean {
+    public equals(other: BigNumber | undefined): boolean {
+      if (other == undefined) {
+        return false;
+      }
       const thisIntegerPart = Math.floor(Number(this.value));
       const otherIntegerPart = Math.floor(Number(other.value));
       

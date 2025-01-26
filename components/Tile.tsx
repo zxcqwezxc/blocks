@@ -45,7 +45,7 @@ const Tile: React.FC<TileProps> = ({
   targetColIndex,
   isMerged,
 }) => {
-  const translateX = useSharedValue(prevColIndex);
+  const translateX = useSharedValue(colIndex);
   const translateY = useSharedValue(prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex));
   const scale = useSharedValue(1);
 
@@ -59,6 +59,12 @@ const Tile: React.FC<TileProps> = ({
       }
       if (targetRowIndex < rowIndex) {
         translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 100 });
+      }
+      if (targetRowIndex == rowIndex) {
+        translateY.value = withTiming(rowIndex, { duration: 300 });
+      }
+      if (targetColIndex == colIndex) {
+        translateX.value = withTiming(colIndex, { duration: 300 });
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
