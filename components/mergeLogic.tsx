@@ -173,31 +173,35 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
 
   // Применяем новые значения для целевых блоков объединения
   //TODO разобраться с логикой targetCol тут
+  //TODO если что, то все проблемы с не норм отображением объединённых блоков в этом блоке кода, нужно дебажить mergeTargets
   for (const target of mergeTargets) {
     let targetCol = target.col;
     let targetRow = target.row;
-    if (userColIndex != undefined) {
-      targetRow = findLowestEmptyRow(newGrid, userColIndex);
-    }
-    //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
-    //Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
-    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)  && (6 - target.row == targetRow)
-    && newGrid[targetRow]?.[targetCol]?.value.equals(newGrid[targetRow]?.[userColIndex]?.value)) {
+    // if (userColIndex != undefined) {
+    //   targetRow = findLowestEmptyRow(newGrid, userColIndex);
+    // }
+    // //TODO: здесь нужно поменять логику, по идее можно просто объединять блоки по возможности с теми, где блок изменил позицию
+    // //Проверяем, если объединение произошло в пользовательской колонке или рядом с ней
+    // //&& newGrid[targetRow]?.[targetCol]?.value.equals(newGrid[targetRow]?.[userColIndex]?.value)
+    if (userColIndex != undefined && (targetCol === userColIndex || targetCol === userColIndex - 1 || targetCol === userColIndex + 1)
+    ) {
       // && target.row == targetRow
       targetCol = userColIndex;  // Перемещаем блок в колонку пользователя
-    } else {
-      // Если объединение произошло не в пользовательской колонке, ищем колонку, где блок изменил свою позицию
-      const movedBlock = movedBlocks.find(mb => mb.row === target.row && mb.col !== targetCol);
-      if (movedBlock) {
-        targetCol = movedBlock.col;  // Оставляем блок в колонке, где он изменил свою позицию
-      }
     }
+    // } else {
+    //   // Если объединение произошло не в пользовательской колонке, ищем колонку, где блок изменил свою позицию
+    //   const movedBlock = movedBlocks.find(mb => mb.row === target.row && mb.col !== targetCol);
+    //   if (movedBlock) {
+    //     targetCol = movedBlock.col;  // Оставляем блок в колонке, где он изменил свою позицию
+    //   }
+    // }
 
     // Найдём свободную позицию в колонке, чтобы разместить объединённый блок
-    const lowestEmptyRow = findLowestEmptyRow(newGrid, targetCol);
-    if (lowestEmptyRow !== -1) {
-      newGrid[lowestEmptyRow][targetCol] = { value: target.value, currentRow: lowestEmptyRow, currentCol: targetCol, targetRow: lowestEmptyRow, targetCol: targetCol, isMerged: false };
-    }
+    // 
+    // const lowestEmptyRow = findLowestEmptyRow(newGrid, targetCol);
+    // if (lowestEmptyRow !== -1) {
+    newGrid[targetRow][targetCol] = { value: target.value, currentRow: target.row, currentCol: targetCol, targetRow: target.row, targetCol: targetCol, isMerged: false };
+//    }
   }
 
   return { gridAfterMerge: newGrid, merged };

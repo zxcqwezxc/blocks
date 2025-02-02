@@ -32,7 +32,7 @@ export const applyGravity = async (
         const movingTile = newGrid[row][col];
         if (movingTile) {
           movingTile.targetRow = emptyRow; // Устанавливаем новую строку
-          movingTile.targetCol = col;     // Устанавливаем новую колонку
+          movingTile.targetCol = movingTile.currentCol;     // Устанавливаем новую колонку
         }
 
         // Перемещаем блок вниз

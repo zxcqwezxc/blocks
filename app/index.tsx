@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import Game from "@/components/Game";
+import React from "react";
 
 export default function Index() {
   return (
