@@ -1,6 +1,6 @@
 import { Grid } from './GameLogic';
 
-export const waitForAnimation = (duration: number = 100): Promise<void> => {
+export const waitForAnimation = (duration: number = 200): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, duration));
 };
 
@@ -8,47 +8,31 @@ export const applyGravity = async (
   grid: Grid,
   setGrid: (grid: Grid) => void,
 ): Promise<Grid> => {
-  const newGrid = grid.map(row =>
-    row.map(cell =>
-      cell
-        ? {
-            ...cell,
-            targetRow: cell.targetRow ?? null, // Явно устанавливаем тип null
-            targetCol: cell.targetCol ?? null, // Явно устанавливаем тип null
-          }
-        : null
-    )
-  );
+  let newGrid = grid.map(row => [...row]);
+  let moved = false;
 
-  for (let col = 0; col < newGrid[0].length; col++) {
-    let emptyRow = -1;
+  do {
+    moved = false;
+    for (let col = 0; col < newGrid[0].length; col++) {
+      for (let row = 1; row < newGrid.length; row++) { // Начинаем с 1 строки, двигаемся вверх
+        const tile = newGrid[row]?.[col];
+        if (!tile || tile.isMerged) continue; // Пропускаем объединённые блоки
 
-    for (let row = 0; row < newGrid.length; row++) {
-      if (newGrid[row]?.[col] === null) {
-        if (emptyRow === -1) {
-          emptyRow = row; // Находим первую пустую ячейку
-        }
-      } else if (emptyRow !== -1) {
-        const movingTile = newGrid[row][col];
-        if (movingTile) {
-          movingTile.targetRow = emptyRow; // Устанавливаем новую строку
-          movingTile.targetCol = movingTile.currentCol;     // Устанавливаем новую колонку
+        let newRow = row;
+        while (newRow - 1 >= 0 && newGrid[newRow - 1][col] === null) { // Двигаем вверх
+          newRow--;
         }
 
-        // Перемещаем блок вниз
-        newGrid[emptyRow][col] = {
-          ...movingTile!,
-          currentRow: emptyRow, // Обновляем текущую строку
-          currentCol: col,      // Обновляем текущую колонку
-        };
-        newGrid[row][col] = null;
-
-        emptyRow++;
+        if (newRow !== row) {
+          newGrid[newRow][col] = { ...tile, targetRow: newRow, targetCol: col };
+          newGrid[row][col] = null;
+          moved = true;
+        }
       }
     }
-  }
+    setGrid([...newGrid]);
+    await waitForAnimation();
+  } while (moved); // Запускаем до тех пор, пока есть перемещения
 
-  setGrid([...newGrid]); // Обновляем сетку для анимации
-  await waitForAnimation(); // Ждем завершения анимации
   return newGrid;
 };

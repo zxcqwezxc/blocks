@@ -26,10 +26,13 @@ const getColorByValue = (value: BigNumber): string => {
 };
 
 export const NextTile: React.FC<NextTileProps> = ({ value }) => {
+
+  const tileColor = value ?  getColorByValue(value) : '#FFA726'
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Next:</Text>
-      <View style={[styles.tile, { backgroundColor: getColorByValue(value) }]}>
+      <View style={[styles.tile, { backgroundColor: tileColor }]}>
         <Text style={styles.text}>{value.toString()}</Text>
       </View>
     </View>

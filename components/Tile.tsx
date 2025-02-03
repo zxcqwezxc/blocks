@@ -61,10 +61,10 @@ const Tile: React.FC<TileProps> = ({
         translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 100 });
       }
       if (targetRowIndex == rowIndex) {
-        translateY.value = withTiming(rowIndex, { duration: 300 });
+        translateY.value = withTiming(rowIndex, { duration: 100 });
       }
       if (targetColIndex == colIndex) {
-        translateX.value = withTiming(colIndex, { duration: 300 });
+        translateX.value = withTiming(colIndex, { duration: 100 });
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
@@ -79,8 +79,11 @@ const Tile: React.FC<TileProps> = ({
       }
   }, [value, targetRowIndex, targetColIndex]);
 
+  const tileColor = value ?  getColorByValue(value) : '#FFA726';
+
   const animatedStyle = useAnimatedStyle(() => ({
-    backgroundColor: value ? getColorByValue(value) : '#FFA726',
+
+    backgroundColor: tileColor,
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
