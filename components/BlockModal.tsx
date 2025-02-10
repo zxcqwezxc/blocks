@@ -47,7 +47,7 @@ export const BlockModal: React.FC<BlockModalProps> = ({ isVisible, removedBlock,
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Темнее
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -57,14 +57,14 @@ const styles = StyleSheet.create({
   modalContent: {
     width: 320,
     padding: 25,
-    backgroundColor: '#333', // Темно-серый фон
+    backgroundColor: '#333',
     borderRadius: 12,
     alignItems: 'center',
   },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#f0f0f0', // Яркий светлый цвет для заголовка
+    color: '#f0f0f0',
     marginBottom: 15,
   },
   blockContainer: {
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   },
   blockLabel: {
     fontSize: 16,
-    color: '#aaa', // Мягкий контраст для подписи
+    color: '#aaa', 
     marginBottom: 5,
     textAlign: 'center',
   },

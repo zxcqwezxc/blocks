@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, Animated } from 'react-native';
 import Tile from './Tile';
 import { initializeGrid, Grid, GridCell, dropTile } from './GameLogic';
 import { AvailableBlocks, GameState } from './storage';
@@ -30,6 +30,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
   const [newBlock, setNewBlock] = useState<BigNumber | null>(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const gridRef = useRef(grid);
+  const [greeting, setGreeting] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -41,10 +42,30 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
     gridRef.current = grid;
   }, [grid]);
 
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
   useEffect(() => {
     if (gameState?.grid && isEqual(grid, initializeGrid())) {
-      console.log("Loading saved grid from gameState");
       setGrid(gameState.grid);
+      const currentHour = new Date().getHours();
+      let greetingText = "Good night";
+
+      if (currentHour >= 6 && currentHour < 12) {
+        greetingText = "Good morning";
+      } else if (currentHour >= 12 && currentHour < 18) {
+        greetingText = "Good afternoon";
+      } else if (currentHour >= 18 && currentHour < 22) {
+        greetingText = "Good evening";
+      }
+
+      setGreeting(greetingText);
+      fadeAnim.setValue(1);
+
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 4000,
+        useNativeDriver: true,
+      }).start(() => setGreeting(null));
     }
   }, [gameState]);
 
@@ -177,6 +198,11 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
   
   return (
     <>
+      {greeting && (
+        <Animated.View style={[styles.greetingContainer, { opacity: fadeAnim }]}> 
+          <Text style={styles.greetingText}>{greeting}</Text>
+        </Animated.View>
+      )}
       <BlockModal
         isVisible={isModalVisible}
         removedBlock={removedBlock}
@@ -253,6 +279,25 @@ const styles = StyleSheet.create({
     height: 70,
     width: 70,
     marginBottom: 2,
+  },
+  greetingContainer: {
+    position: 'absolute',
+    top: '30%',
+    left: '45%',
+    transform: [{ translateX: -50 }],
+    padding: 10,
+    backgroundColor: 'rgba(0, 128, 0, 0.8)',
+    borderRadius: 10,
+    zIndex: 10,
+  },
+  greetingText: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'black',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
 });
 
