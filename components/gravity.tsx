@@ -9,30 +9,43 @@ export const applyGravity = async (
   setGrid: (grid: Grid) => void,
 ): Promise<Grid> => {
   let newGrid = grid.map(row => [...row]);
-  let moved = false;
+  let moved: boolean;
 
   do {
     moved = false;
-    for (let col = 0; col < newGrid[0].length; col++) {
-      for (let row = 1; row < newGrid.length; row++) { // Начинаем с 1 строки, двигаемся вверх
-        const tile = newGrid[row]?.[col];
-        if (!tile || tile.isMerged) continue; // Пропускаем объединённые блоки
 
-        let newRow = row;
-        while (newRow - 1 >= 0 && newGrid[newRow - 1][col] === null) { // Двигаем вверх
-          newRow--;
+    for (let col = 0; col < newGrid[0].length; col++) {
+      for (let row = 1; row < newGrid.length; row++) {
+        const tile = newGrid[row][col];
+        if (!tile) continue;
+
+        let dropRow = row; 
+
+        while (dropRow - 1 >= 0 && newGrid[dropRow - 1][col] === null) {
+          dropRow--;
         }
 
-        if (newRow !== row) {
-          newGrid[newRow][col] = { ...tile, targetRow: newRow, targetCol: col };
+        if (
+          dropRow - 1 >= 0 &&
+          newGrid[dropRow - 1][col]?.targetRow !== null &&
+          (newGrid[dropRow - 1][col]?.targetRow !== newGrid[dropRow - 1][col]?.currentRow && !newGrid[dropRow][col]?.value.equals(newGrid[dropRow - 1][col]?.value))
+        ) {
+          dropRow--;
+        }
+
+        //TODO Если падает несколько блоков, то последний встаёт на минимальное место, нужно изменить расчёт
+        if (dropRow !== row) {
+          newGrid[row][col] = { ...tile, targetRow: dropRow, targetCol: col };
+          setGrid([...newGrid]);
+          await waitForAnimation(); 
           newGrid[row][col] = null;
+          newGrid[dropRow][col] = { ...tile, targetRow: dropRow, targetCol: col };
           moved = true;
         }
       }
     }
-    setGrid([...newGrid]);
-    await waitForAnimation();
-  } while (moved); // Запускаем до тех пор, пока есть перемещения
+
+  } while (moved);
 
   return newGrid;
 };

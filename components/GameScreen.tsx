@@ -48,14 +48,14 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
     if (gameState?.grid && isEqual(grid, initializeGrid())) {
       setGrid(gameState.grid);
       const currentHour = new Date().getHours();
-      let greetingText = "Good night";
+      let greetingText = "gn, Леся<3<3<3<3";
 
       if (currentHour >= 6 && currentHour < 12) {
-        greetingText = "Good morning";
+        greetingText = "gmgmgm<3<3<3<3";
       } else if (currentHour >= 12 && currentHour < 18) {
-        greetingText = "Good afternoon";
+        greetingText = "haiiiiiiii<3<3<3<3<3";
       } else if (currentHour >= 18 && currentHour < 22) {
-        greetingText = "Good evening";
+        greetingText = "haiiiiiiii<3<3<3<3<3";
       }
 
       setGreeting(greetingText);

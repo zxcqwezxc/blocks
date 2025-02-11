@@ -112,40 +112,55 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
                   isMerged: false,
                 };
               }
+
+              // Блок неправильно падает до того, как попадает сюда
+              // if (belowTile && (belowTile.targetCol != belowTile.currentCol || belowTile.targetRow != belowTile.currentRow)) {
+              //   // Устанавливаем targetRow в строку блока под ним
+              //   tileCell.targetRow = tile.row - 1;
+              //   tileCell.targetCol = tile.col;
+              //   newGrid[tile.row][tile.col] = {
+              //     value: tileCell.value,
+              //     currentRow: tileCell.currentRow,
+              //     currentCol: tileCell.currentCol,
+              //     targetRow: tileCell.targetRow,
+              //     targetCol: tileCell.targetCol,
+              //     isMerged: false,
+              //   };
+              // }
             }
 
             // Логика для userColIndex
             if (userColIndex && tileCell.value != undefined) {
-            if (
-              userColIndex &&
-              (tileCell.currentCol == userColIndex + 1 || tileCell.currentCol == userColIndex - 1)
-              && tileCell.value.equals(newGrid[tileCell.currentRow][userColIndex]?.value)
-            ) {
-              tileCell.targetCol = userColIndex;
-              tileCell.targetRow = tile.row; // Оставляем строку без изменений
-              newGrid[tile.row][tile.col] = {
-                value: tileCell.value,
-                currentRow: tile.row,
-                currentCol: tile.col,
-                targetRow: tileCell.targetRow,
-                targetCol: tileCell.targetCol,
-                isMerged: false,
-              };
-            }
+              if (
+                userColIndex &&
+                (tileCell.currentCol == userColIndex + 1 || tileCell.currentCol == userColIndex - 1)
+                && tileCell.value.equals(newGrid[tileCell.currentRow][userColIndex]?.value)
+              ) {
+                tileCell.targetCol = userColIndex;
+                tileCell.targetRow = newGrid[tileCell.currentRow][userColIndex]?.targetRow ?? null; // Оставляем строку без изменений
+                newGrid[tile.row][tile.col] = {
+                  value: tileCell.value,
+                  currentRow: tile.row,
+                  currentCol: tile.col,
+                  targetRow: tileCell.targetRow,
+                  targetCol: tileCell.targetCol,
+                  isMerged: false,
+                };
+              }
 
-            if (userColIndex && tileCell.currentCol == userColIndex) {
-              tileCell.targetCol = userColIndex;
-              tileCell.targetRow ? tileCell.targetRow : tile.row;
-              newGrid[tile.row][tile.col] = {
-                value: tileCell.value,
-                currentRow: tile.row,
-                currentCol: tile.col,
-                targetRow: tileCell.targetRow,
-                targetCol: tileCell.targetCol,
-                isMerged: false,
-              };
+              // if (userColIndex && tileCell.currentCol == userColIndex) {
+              //   tileCell.targetCol = userColIndex;
+              //   tileCell.targetRow ? tileCell.targetRow : tile.row;
+              //   newGrid[tile.row][tile.col] = {
+              //     value: tileCell.value,
+              //     currentRow: tile.row,
+              //     currentCol: tile.col,
+              //     targetRow: tileCell.targetRow,
+              //     targetCol: tileCell.targetCol,
+              //     isMerged: false,
+              //   };
+              // }
             }
-          }
           }
           setGrid([...newGrid]);
           await new Promise(resolve => setTimeout(resolve, 100));
