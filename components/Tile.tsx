@@ -46,25 +46,25 @@ const Tile: React.FC<TileProps> = ({
   isMerged,
 }) => {
   const translateX = useSharedValue(colIndex);
-  const translateY = useSharedValue(prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex));
+  const translateY = useSharedValue(rowIndex); //prevRowIndex !== null ? 100 * (7 - prevRowIndex) : 100 * (7 - rowIndex)
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    if (value !== null && targetRowIndex !== null && targetColIndex !== null && targetColIndex != undefined && targetRowIndex != undefined) {
+    if (value != null && targetRowIndex != null && targetColIndex != null && targetColIndex != undefined && targetRowIndex != undefined) {
       if (targetColIndex > colIndex) {
-        translateX.value = withTiming(targetColIndex + 80, { duration: 100 });
+        translateX.value = withTiming(targetColIndex + 80, { duration: 300 });
       }
       if (targetColIndex < colIndex) {
-        translateX.value = withTiming(targetColIndex - 80, { duration: 100 });
+        translateX.value = withTiming(targetColIndex - 80, { duration: 300 });
       }
       if (targetRowIndex < rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 100 });
+        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 300 });
       }
       if (targetRowIndex == rowIndex) {
-        translateY.value = withTiming(rowIndex, { duration: 100 });
+        translateY.value = withTiming(rowIndex, { duration: 300 });
       }
       if (targetColIndex == colIndex) {
-        translateX.value = withTiming(colIndex, { duration: 100 });
+        translateX.value = withTiming(colIndex, { duration: 300 });
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
@@ -74,7 +74,10 @@ const Tile: React.FC<TileProps> = ({
     } else {
         // Обычное движение вниз
         translateX.value = withTiming(colIndex, { duration: 300 });
-        translateY.value = withTiming(rowIndex, { duration: 300 });
+        if (targetColIndex == null) {
+          translateY.value = withTiming(100 * (7 - rowIndex), { duration: 0 }); 
+          translateY.value = withTiming(rowIndex, { duration: 300 });
+        }
         scale.value = withSpring(1);
       }
   }, [value, targetRowIndex, targetColIndex]);

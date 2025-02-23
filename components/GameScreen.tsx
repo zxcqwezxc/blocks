@@ -48,7 +48,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
     if (gameState?.grid && isEqual(grid, initializeGrid())) {
       setGrid(gameState.grid);
       const currentHour = new Date().getHours();
-      let greetingText = "gn, Леся<3<3<3<3";
+      let greetingText = "gn<3<3<3<3";
 
       if (currentHour >= 6 && currentHour < 12) {
         greetingText = "gmgmgm<3<3<3<3";

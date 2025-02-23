@@ -163,7 +163,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
             }
           }
           setGrid([...newGrid]);
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 300));
           //newGrid[tile.row][tile.col].targetCol = colIndex || null;
           
         }
