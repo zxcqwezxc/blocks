@@ -38,7 +38,6 @@ export const animateTileMerge = async (fromValue: { x: number, y: number }, toVa
 };
 
 // export const animateTileRemove = async (tileCoordinates: { row: number, col: number }) => {
-//   // Задайте анимацию удаления, например, уменьшая масштаб или используя затухание
 //   return new Promise<void>(resolve => {
 //     // Ваша анимация здесь
 //     // В конце вызовите resolve() для завершения анимации

@@ -197,6 +197,7 @@ const handleDropAndMerge = async (
       // Применяем гравитацию после объединения
       newGrid = await applyGravity(newGrid, setGrid);
       setGrid(newGrid);
+      colIndex = -1;
     }
   } while (hasMerged);
 

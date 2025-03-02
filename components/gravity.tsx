@@ -33,7 +33,6 @@ export const applyGravity = async (
           dropRow--;
         }
 
-        //TODO Если падает несколько блоков, то последний встаёт на минимальное место, нужно изменить расчёт
         if (dropRow !== row) {
           newGrid[row][col] = { ...tile, targetRow: dropRow, targetCol: col };
           setGrid([...newGrid]);

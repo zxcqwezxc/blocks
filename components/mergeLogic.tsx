@@ -40,6 +40,47 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
   
   const mergeTargets: { row: number, col: number, value: BigNumber }[] = [];
   let merged = false;
+
+  if (userColIndex === -1) {
+    let canMerge = true;
+    //while (canMerge) {
+      canMerge = false;
+      const mergeGroups = findMergeGroups(newGrid);
+      
+      for (const group of mergeGroups) {
+        const { tiles, center } = group;
+        const combinedValue = newGrid[center.row][center.col]?.value.multiply(tiles.length - 1);
+        
+        tiles.forEach(tile => {
+          const movingTile = newGrid[tile.row][tile.col];
+          if (movingTile) {
+            movingTile.targetRow = center.row;
+            movingTile.targetCol = center.col;
+          }
+        });
+        
+        setGrid([...newGrid]);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        tiles.forEach(tile => {
+          newGrid[tile.row][tile.col] = null;
+        });
+        newGrid[center.row][center.col] = { 
+          value: combinedValue || new BigNumber(1),
+          currentRow: center.row,
+          currentCol: center.col,
+          targetRow: center.row,
+          targetCol: center.col,
+          isMerged: false
+        };
+        setGrid([...newGrid]);
+      }
+      if (mergeGroups.length > 0) {
+        merged = true;
+      }
+    //}
+    return { gridAfterMerge: newGrid, merged: merged };
+  }
   
   // Массив для отслеживания уже объединённых блоков
   const alreadyMerged: boolean[][] = newGrid.map(row => row.map(() => false));
@@ -58,30 +99,6 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
       if (mergeableTiles.length > 0) {
         // Рассчитываем новое значение для объединённого блока
         const combinedValue = tileValue.value.multiply(mergeableTiles.length);
-
-        // mergeableTiles.forEach(tile => {
-        //   const movingTile = newGrid[tile.row][tile.col];
-        //   if (movingTile) {
-        //     movingTile.targetRow = rowIndex;
-        //     movingTile.targetCol = colIndex;
-        //   }
-        // });
-
-        // const targetRow = rowIndex; // Целевая строка для нового блока
-        // const targetCol = colIndex; // Целевая колонка для нового блока
-
-        // for (const mergeTile of mergeableTiles) {
-        //   if (newGrid[mergeTile.row][mergeTile.col]?.value) {
-        //     newGrid[mergeTile.row][mergeTile.col] = {
-        //       targetRow: rowIndex,
-        //       targetCol: userColIndex || null,
-        //       value: newGrid[mergeTile.row][mergeTile.col]?.value || new BigNumber(4),
-        //       currentRow: mergeTile.row,
-        //       currentCol: mergeTile.col,
-        //       isMerged: false,
-        //     };
-        //   }
-        // }
 
         // Сохраняем информацию о том, где блоки изменили свою позицию после падения
         movedBlocks.push({ row: rowIndex, col: colIndex }, ...mergeableTiles);
@@ -112,21 +129,6 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
                   isMerged: false,
                 };
               }
-
-              // Блок неправильно падает до того, как попадает сюда
-              // if (belowTile && (belowTile.targetCol != belowTile.currentCol || belowTile.targetRow != belowTile.currentRow)) {
-              //   // Устанавливаем targetRow в строку блока под ним
-              //   tileCell.targetRow = tile.row - 1;
-              //   tileCell.targetCol = tile.col;
-              //   newGrid[tile.row][tile.col] = {
-              //     value: tileCell.value,
-              //     currentRow: tileCell.currentRow,
-              //     currentCol: tileCell.currentCol,
-              //     targetRow: tileCell.targetRow,
-              //     targetCol: tileCell.targetCol,
-              //     isMerged: false,
-              //   };
-              // }
             }
 
             // Логика для userColIndex
@@ -137,7 +139,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
                 && tileCell.value.equals(newGrid[tileCell.currentRow][userColIndex]?.value)
               ) {
                 tileCell.targetCol = userColIndex;
-                tileCell.targetRow = newGrid[tileCell.currentRow][userColIndex]?.targetRow ?? null; // Оставляем строку без изменений
+                tileCell.targetRow = newGrid[tileCell.currentRow][userColIndex]?.targetRow ?? tileCell.currentRow; // Оставляем строку без изменений
                 newGrid[tile.row][tile.col] = {
                   value: tileCell.value,
                   currentRow: tile.row,
@@ -147,19 +149,6 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
                   isMerged: false,
                 };
               }
-
-              // if (userColIndex && tileCell.currentCol == userColIndex) {
-              //   tileCell.targetCol = userColIndex;
-              //   tileCell.targetRow ? tileCell.targetRow : tile.row;
-              //   newGrid[tile.row][tile.col] = {
-              //     value: tileCell.value,
-              //     currentRow: tile.row,
-              //     currentCol: tile.col,
-              //     targetRow: tileCell.targetRow,
-              //     targetCol: tileCell.targetCol,
-              //     isMerged: false,
-              //   };
-              // }
             }
           }
           setGrid([...newGrid]);
@@ -237,6 +226,36 @@ const findLowestEmptyRow = (grid: Grid, colIndex: number): number => {
   }
   return -1; // Если нет доступных ячеек
 };
+
+const findMergeGroups = (grid: Grid) => {
+  const mergeGroups: { tiles: { row: number, col: number }[], center: { row: number, col: number } }[] = [];
+  const visited: boolean[][] = grid.map(row => row.map(() => false));
+
+  for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
+    for (let colIndex = 0; colIndex < grid[0].length; colIndex++) {
+      if (visited[rowIndex][colIndex] || !grid[rowIndex][colIndex]) continue;
+      
+      const tile = grid[rowIndex][colIndex];
+      const mergeableTiles = getMergeableTiles(grid, rowIndex, colIndex, tile!.value);
+
+      if (mergeableTiles.length > 0) {
+        // Добавляем сам стартовый блок в список, чтобы он тоже участвовал в объединении
+        mergeableTiles.push({ row: rowIndex, col: colIndex });
+
+        // Помечаем все блоки как посещенные
+        mergeableTiles.forEach(({ row, col }) => visited[row][col] = true);
+
+        // Выбираем центральный блок по позиции
+        mergeableTiles.sort((a, b) => a.row - b.row || a.col - b.col); // Сортировка по строкам, затем по колонкам
+        const centerIndex = Math.floor(mergeableTiles.length / 2);
+        mergeGroups.push({ tiles: mergeableTiles, center: mergeableTiles[centerIndex] });
+      }
+    }
+  }
+
+  return mergeGroups;
+};
+
 
 
 const getMergeableTiles = (grid: Grid, startRow: number, startCol: number, value: BigNumber): { row: number, col: number }[] => {

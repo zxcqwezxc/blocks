@@ -60,6 +60,9 @@ const Tile: React.FC<TileProps> = ({
       if (targetRowIndex < rowIndex) {
         translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 300 });
       }
+      if (targetRowIndex > rowIndex) {
+        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 300 });
+      }
       if (targetRowIndex == rowIndex) {
         translateY.value = withTiming(rowIndex, { duration: 300 });
       }
