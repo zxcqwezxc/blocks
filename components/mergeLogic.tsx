@@ -60,7 +60,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
         });
         
         setGrid([...newGrid]);
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 150));
         
         tiles.forEach(tile => {
           newGrid[tile.row][tile.col] = null;
@@ -152,7 +152,7 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
             }
           }
           setGrid([...newGrid]);
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 150));
           //newGrid[tile.row][tile.col].targetCol = colIndex || null;
           
         }
@@ -239,22 +239,29 @@ const findMergeGroups = (grid: Grid) => {
       const mergeableTiles = getMergeableTiles(grid, rowIndex, colIndex, tile!.value);
 
       if (mergeableTiles.length > 0) {
-        // Добавляем сам стартовый блок в список, чтобы он тоже участвовал в объединении
         mergeableTiles.push({ row: rowIndex, col: colIndex });
-
-        // Помечаем все блоки как посещенные
         mergeableTiles.forEach(({ row, col }) => visited[row][col] = true);
 
-        // Выбираем центральный блок по позиции
-        mergeableTiles.sort((a, b) => a.row - b.row || a.col - b.col); // Сортировка по строкам, затем по колонкам
-        const centerIndex = Math.floor(mergeableTiles.length / 2);
-        mergeGroups.push({ tiles: mergeableTiles, center: mergeableTiles[centerIndex] });
+        const centerTile = mergeableTiles.reduce((best, tile) => {
+          const rowMatches = mergeableTiles.filter(t => t.row === tile.row).length;
+          const colMatches = mergeableTiles.filter(t => t.col === tile.col).length;
+          const score = rowMatches + colMatches;
+
+          const bestRowMatches = mergeableTiles.filter(t => t.row === best.row).length;
+          const bestColMatches = mergeableTiles.filter(t => t.col === best.col).length;
+          const bestScore = bestRowMatches + bestColMatches;
+
+          return score > bestScore ? tile : best;
+        }, mergeableTiles[0]);
+
+        mergeGroups.push({ tiles: mergeableTiles, center: centerTile });
       }
     }
   }
 
   return mergeGroups;
 };
+
 
 
 

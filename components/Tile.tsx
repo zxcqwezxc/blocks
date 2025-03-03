@@ -52,22 +52,22 @@ const Tile: React.FC<TileProps> = ({
   useEffect(() => {
     if (value != null && targetRowIndex != null && targetColIndex != null && targetColIndex != undefined && targetRowIndex != undefined) {
       if (targetColIndex > colIndex) {
-        translateX.value = withTiming(targetColIndex + 80, { duration: 300 });
+        translateX.value = withTiming(targetColIndex + 80, { duration: 150 });
       }
       if (targetColIndex < colIndex) {
-        translateX.value = withTiming(targetColIndex - 80, { duration: 300 });
+        translateX.value = withTiming(targetColIndex - 80, { duration: 150 });
       }
       if (targetRowIndex < rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 300 });
+        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
       }
       if (targetRowIndex > rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 300 });
+        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
       }
       if (targetRowIndex == rowIndex) {
-        translateY.value = withTiming(rowIndex, { duration: 300 });
+        translateY.value = withTiming(rowIndex, { duration: 150 });
       }
       if (targetColIndex == colIndex) {
-        translateX.value = withTiming(colIndex, { duration: 300 });
+        translateX.value = withTiming(colIndex, { duration: 150 });
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
@@ -76,10 +76,10 @@ const Tile: React.FC<TileProps> = ({
       });
     } else {
         // Обычное движение вниз
-        translateX.value = withTiming(colIndex, { duration: 300 });
+        translateX.value = withTiming(colIndex, { duration: 150 });
         if (targetColIndex == null) {
           translateY.value = withTiming(100 * (7 - rowIndex), { duration: 0 }); 
-          translateY.value = withTiming(rowIndex, { duration: 300 });
+          translateY.value = withTiming(rowIndex, { duration: 150 });
         }
         scale.value = withSpring(1);
       }

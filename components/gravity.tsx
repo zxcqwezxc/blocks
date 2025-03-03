@@ -1,6 +1,6 @@
 import { Grid } from './GameLogic';
 
-export const waitForAnimation = (duration: number = 300): Promise<void> => {
+export const waitForAnimation = (duration: number = 150): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, duration));
 };
 

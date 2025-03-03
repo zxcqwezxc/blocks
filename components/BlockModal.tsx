@@ -51,9 +51,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  tileInBox: {
-    position: 'relative'
-  },
   modalContent: {
     width: 320,
     padding: 25,
@@ -77,17 +74,22 @@ const styles = StyleSheet.create({
   blockSection: {
     flex: 1,
     alignItems: 'center',
+    position: 'relative',
   },
   blockLabel: {
     fontSize: 16,
-    color: '#aaa', 
-    marginBottom: 5,
+    color: '#aaa',
+    position: 'absolute',
+    top: -35,
     textAlign: 'center',
+  },
+  tileContainer: {
+    marginTop: -5,
   },
   divider: {
     width: 1,
     height: 80,
-    backgroundColor: '#666', // Более темная линия
+    backgroundColor: '#666',
     marginHorizontal: 10,
   },
   closeButton: {
