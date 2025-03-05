@@ -35,7 +35,7 @@ export const mergeTilesUntilStable = async (
 };
 
 
-export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, userColIndex?: number): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
+export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, userColIndex?: number, oldGrid?: Grid): Promise<{ gridAfterMerge: Grid, merged: boolean }> => {
   const newGrid = grid.map(row => [...row]);
   
   const mergeTargets: { row: number, col: number, value: BigNumber }[] = [];
@@ -45,7 +45,12 @@ export const mergeTiles = async (grid: Grid, setGrid: (grid: Grid) => void, user
     let canMerge = true;
     //while (canMerge) {
       canMerge = false;
-      const mergeGroups = findMergeGroups(newGrid);
+      let mergeGroups; 
+      if (oldGrid != undefined) {
+        mergeGroups = findMergeGroups(newGrid, oldGrid);
+      } else {
+        mergeGroups = findMergeGroups(newGrid);
+      }
       
       for (const group of mergeGroups) {
         const { tiles, center } = group;
@@ -227,7 +232,7 @@ const findLowestEmptyRow = (grid: Grid, colIndex: number): number => {
   return -1; // Если нет доступных ячеек
 };
 
-const findMergeGroups = (grid: Grid) => {
+const findMergeGroups = (grid: Grid, oldGrid?: Grid) => {
   const mergeGroups: { tiles: { row: number, col: number }[], center: { row: number, col: number } }[] = [];
   const visited: boolean[][] = grid.map(row => row.map(() => false));
 
@@ -242,17 +247,32 @@ const findMergeGroups = (grid: Grid) => {
         mergeableTiles.push({ row: rowIndex, col: colIndex });
         mergeableTiles.forEach(({ row, col }) => visited[row][col] = true);
 
-        const centerTile = mergeableTiles.reduce((best, tile) => {
-          const rowMatches = mergeableTiles.filter(t => t.row === tile.row).length;
-          const colMatches = mergeableTiles.filter(t => t.col === tile.col).length;
-          const score = rowMatches + colMatches;
+        let centerTile = mergeableTiles[0];
 
-          const bestRowMatches = mergeableTiles.filter(t => t.row === best.row).length;
-          const bestColMatches = mergeableTiles.filter(t => t.col === best.col).length;
-          const bestScore = bestRowMatches + bestColMatches;
+        if (oldGrid) {
+          const movedTiles = mergeableTiles.filter(({ row, col }) => {
+            const oldTile = oldGrid[row]?.[col];
+            if (!oldTile) return false;
+            const newTile = grid[row]?.[col];
+            return !oldTile.value.equals(newTile?.value) || oldTile.currentRow !== newTile?.currentRow || oldTile.currentCol !== newTile?.currentCol;
+          });
 
-          return score > bestScore ? tile : best;
-        }, mergeableTiles[0]);
+          if (movedTiles.length === 1) {
+            centerTile = movedTiles[0];
+          } else if (movedTiles.length === mergeableTiles.length) {
+            centerTile = mergeableTiles.reduce((best, tile) => {
+              const rowMatches = mergeableTiles.filter(t => t.row === tile.row).length;
+              const colMatches = mergeableTiles.filter(t => t.col === tile.col).length;
+              const score = rowMatches + colMatches;
+
+              const bestRowMatches = mergeableTiles.filter(t => t.row === best.row).length;
+              const bestColMatches = mergeableTiles.filter(t => t.col === best.col).length;
+              const bestScore = bestRowMatches + bestColMatches;
+
+              return score > bestScore ? tile : best;
+            }, mergeableTiles[0]);
+          }
+        }
 
         mergeGroups.push({ tiles: mergeableTiles, center: centerTile });
       }
@@ -261,6 +281,7 @@ const findMergeGroups = (grid: Grid) => {
 
   return mergeGroups;
 };
+
 
 
 

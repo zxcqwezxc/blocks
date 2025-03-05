@@ -106,82 +106,77 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
   //   applyGravity(grid); // Применяем гравитацию после модальных окон
   // };
 
-  const updateAvailableBlocks = (newBlock: BigNumber, newGrid: typeof grid) => {
-    setAvailableBlocks((prevBlocks: BigNumber[]) => {
-      const updatedBlocks = [...prevBlocks];
-      updatedBlocks.shift(); // Удаляем минимальный блок
-      updatedBlocks.push(newBlock); // Добавляем новый блок
+  const updateAvailableBlocks = (newGrid: typeof grid) => {
+    let updatedBlocks = [...availableBlocks];
+    let minAvailableBlock = updatedBlocks[0];
+    let removedBlock: BigNumber | null = null;
+    let newBlock: BigNumber | null = null;
+    let changesMade = false;
   
-      const minAvailableBlock = updatedBlocks[0];
-      const removedBlocks: BigNumber[] = [];
+    do {
+      changesMade = false;
+      minAvailableBlock = updatedBlocks[0];
   
-      const updatedGrid = newGrid.map(row => 
+      const updatedGrid = newGrid.map(row =>
         row.map(cell => {
           if (cell && cell.value.lessThan(minAvailableBlock)) {
-            removedBlocks.push(cell.value); // Отслеживаем удалённые блоки
+            removedBlock = cell.value;
             return null;
           }
           return cell;
         })
       );
       
+      const maxTile = updatedGrid.flat()
+        .filter((cell): cell is GridCell => cell !== null)
+        .reduce((max, tile) => tile && tile.value.greaterThan(max.value) ? tile : max, { value: new BigNumber(0) });
+  
+      const maxAvailableBlock = updatedBlocks[updatedBlocks.length - 1];
+      if (maxTile.value.greaterThan(maxAvailableBlock.multiply(2))) {
+        newBlock = maxAvailableBlock.multiply(1);
+        updatedBlocks.shift();
+        updatedBlocks.push(newBlock);
+        changesMade = true;
+      }
+  
       setGrid(updatedGrid);
-
-      setRemovedBlock(minAvailableBlock.divide(1));
+    } while (changesMade);
+  
+    if (removedBlock || newBlock) {
+      setRemovedBlock(removedBlock);
       setNewBlock(newBlock);
-      return updatedBlocks;
-    });
-    setDBAvailableBlocks(availableBlocks);
-    setModalVisible(true);
+      setAvailableBlocks(updatedBlocks);
+      setDBAvailableBlocks(updatedBlocks);
+      setModalVisible(true);
+    }
   };
   
   const handleModalClose = async () => {
     setModalVisible(false);
-  
     setRemovedBlock(null);
     setNewBlock(null);
-    // Вызываем последовательное объединение и гравитацию
+  
     let updatedGrid = await mergeTilesUntilStable(gridRef.current, setGrid);
     updatedGrid = await applyGravity(updatedGrid, setGrid);
   
-    // Обновляем состояние сетки и nextTile
     setGrid(updatedGrid);
   
-    // Перезагружаем значение для следующего блока
     const minTile = getMinTile();
     const newNextTile = nextTile.lessThan(minTile) ? getRandomTile() : nextTile;
     setNextTile(newNextTile);
   };
   
-  
-  
   const onTilePress = async (colIndex: number) => {
     const { newGrid, mergedPositions } = await dropTile(grid, colIndex, nextTile, setGrid);
-    //setGrid(newGrid);
     setGameState({ grid: newGrid });
     setMergedTiles(mergedPositions);
     gridRef.current = newGrid;
   
-    const maxTile = newGrid
-    .flat()
-    .filter((val): val is GridCell => val !== null && val.value !== undefined) // Явная проверка на GridCell
-    .reduce((max, tile) =>
-      tile && max && tile.value.greaterThan(max.value) ? tile : max,
-      { value: new BigNumber(0), currentRow: 0, currentCol: 0, targetRow: null, targetCol: null, isMerged: false }
-    );
-  
-  
-    const maxAvailableBlock = availableBlocks[availableBlocks.length - 1];
-    if (maxTile && maxTile.value.greaterThan(maxAvailableBlock.multiply(2))) {
-      const newBlock = maxAvailableBlock.multiply(1);
-      // let updatedGrid = await mergeTilesUntilStable(newGrid);
-      // updatedGrid = applyGravity(updatedGrid);
-      updateAvailableBlocks(newBlock, newGrid);
-      //setModalVisible(true);
-    }
+    updateAvailableBlocks(newGrid);
   
     setNextTile(getRandomTile());
   };
+  
 
   const getMinTile = (): BigNumber => {
     const tiles = grid.flat().filter((tile): tile is GridCell => tile !== null);
@@ -189,10 +184,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
   
     const minTile = tiles.reduce((minTile, tile) =>
       tile && minTile && tile.value.lessThan(minTile.value) ? tile : minTile,
-      tiles[0] // Установите первый элемент как начальное значение
+      tiles[0]
     );
   
-    // Гарантируем возврат BigNumber, даже если reduce вернёт undefined
     return minTile?.value ?? new BigNumber(0);
   };
   

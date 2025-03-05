@@ -85,7 +85,7 @@ const Tile: React.FC<TileProps> = ({
       }
   }, [value, targetRowIndex, targetColIndex]);
 
-  const tileColor = value ?  getColorByValue(value) : '#FFA726';
+  const tileColor = value ?  getColorByValue(value) : '#333';
 
   const animatedStyle = useAnimatedStyle(() => ({
 

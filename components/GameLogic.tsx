@@ -52,17 +52,15 @@ export const dropTile = async (
       // Проверяем последний блок в столбце
       const lastBlockValue = grid[grid.length - 1][colIndex];
       if (lastBlockValue?.value && lastBlockValue.value.toNumber() === tileValue.toNumber()) {
-        // Если значения совпадают, объединяем
-        dropRowIndex = grid.length - 1; // Можем объединить с последним блоком
+        dropRowIndex = grid.length - 1;
 
         // Выполнение объединения, если блоки совпадают
         let newGrid = grid.map(row => [...row]);
-        newGrid[dropRowIndex][colIndex] = null; // Удаляем старый блок
+        newGrid[dropRowIndex][colIndex] = null;
 
         // Применяем новое значение
         const combinedValue = lastBlockValue.value.multiply(1); // Объединяем значения
 
-        // Устанавливаем новое значение в ячейку
         newGrid[dropRowIndex][colIndex] = {
           value: combinedValue, // Значение блока
           currentRow: dropRowIndex, // Текущая строка
@@ -72,12 +70,10 @@ export const dropTile = async (
           isMerged: false, 
         };
 
-        // Устанавливаем новую сетку
         setGrid(newGrid);
 
         newGrid = await mergeTilesUntilStable(newGrid, setGrid, colIndex);
 
-        // Применяем гравитацию
         newGrid = await applyGravity(newGrid, setGrid);
 
         return { newGrid, mergedPositions: [{ row: dropRowIndex, col: colIndex }] };
@@ -103,9 +99,8 @@ export const dropTile = async (
   newGrid = await handleDropAndMerge(newGrid, colIndex, tileValue, setGrid);
 
   // Если во время объединения были слияния, добавляем позиции
-  mergedPositions = getMergedPositions(newGrid, grid, colIndex); // Добавим функцию для поиска объединённых позиций
+  mergedPositions = getMergedPositions(newGrid, grid, colIndex);
 
-  // Применяем гравитацию снова после всех объединений и анимаций
   newGrid = await applyGravity(newGrid, setGrid);
 
   return { newGrid, mergedPositions };
@@ -115,20 +110,16 @@ export const dropTile = async (
 const getMergedPositions = (grid: Grid, oldGrid: Grid, colIndex: number): { row: number, col: number }[] => {
   const mergedPositions: { row: number, col: number }[] = [];
 
-  // Добавляем проверку, чтобы убедиться, что grid не undefined и не пустой
   if (!grid || grid.length === 0) {
     return mergedPositions;
   }
 
-  // Проверяем каждый ряд в колонке
   for (let rowIndex = 0; rowIndex < grid.length; rowIndex++) {
     const row = grid[rowIndex];
 
-    // Проверяем, что текущий ряд существует и имеет достаточно колонок
     if (row && row.length > colIndex) {
       const tileValue = row[colIndex];
       let position = {rowIndex, colIndex};
-      // Проверяем, было ли значение объединено (например, если оно удвоилось)
       if (tileValue && checkIfMerged(oldGrid, grid, {row: rowIndex, col: colIndex})) {
         mergedPositions.push({ row: rowIndex, col: colIndex });
       }
@@ -145,16 +136,12 @@ const checkIfMerged = (
 ): boolean => {
   const { row, col } = position;
 
-  // Проверяем наличие блоков на указанных позициях
   const oldBlock = oldGrid[row]?.[col];
   const newBlock = newGrid[row]?.[col];
 
-  // Если в старой сетке блока не было, считаем, что слияния не было
   if (!oldBlock || !newBlock) {
     return false;
   }
-
-  // Проверяем, увеличилось ли значение блока
   return newBlock.value.toNumber() > oldBlock.value.toNumber();
 };
 
@@ -167,7 +154,6 @@ const handleDropAndMerge = async (
 
   let newGrid = grid.map(row => [...row]);
 
-  // Логика падения блока
   const dropRowIndex = findDropPosition(newGrid, colIndex);
   if (dropRowIndex === -1) return newGrid;
 
@@ -181,20 +167,18 @@ const handleDropAndMerge = async (
   };;
   setGrid(newGrid);
 
-  // Применяем гравитацию после падения
   newGrid = await applyGravity(newGrid, setGrid);
+  let oldGrid = newGrid;
   setGrid(newGrid);
 
   let hasMerged;
   do {
-    const mergingResult = await mergeTiles(newGrid, setGrid, colIndex);
+    const mergingResult = await mergeTiles(newGrid, setGrid, colIndex, oldGrid);
     hasMerged = mergingResult.merged;
 
     if (hasMerged) {
       newGrid = mergingResult.gridAfterMerge;
       setGrid(newGrid);
-
-      // Применяем гравитацию после объединения
       newGrid = await applyGravity(newGrid, setGrid);
       setGrid(newGrid);
       colIndex = -1;
@@ -204,7 +188,6 @@ const handleDropAndMerge = async (
   return newGrid;
 };
 
-// Пример функции для поиска позиции падения
 const findDropPosition = (grid: Grid, colIndex: number): number => {
   for (let rowIndex = grid.length - 1; rowIndex >= 0; rowIndex--) {
     if (grid[rowIndex][colIndex] !== null) {
