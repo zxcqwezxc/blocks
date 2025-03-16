@@ -15,9 +15,11 @@ interface GameScreenProps {
   setGameState: (state: GameState) => void;
   DBBlocks: BigNumber[] | undefined;
   setDBAvailableBlocks: (blocks: BigNumber[]) => void;
+  screenWidth: number,
+  screenHeight: number
 }
 
-const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBlocks, setDBAvailableBlocks }) => {
+const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBlocks, setDBAvailableBlocks, screenWidth, screenHeight }) => {
   // Инициализация grid: если есть сохранённое состояние, загружаем его, иначе создаём пустую сетку
   const [grid, setGrid] = useState<Grid>(gameState?.grid || initializeGrid());
   const isInitialRender = useRef(true);
@@ -31,6 +33,9 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
   const [isModalVisible, setModalVisible] = useState(false);
   const gridRef = useRef(grid);
   const [greeting, setGreeting] = useState<string | null>(null);
+  const numColumns = 5;
+  const numRows = 7;
+  const tileSize = Math.min(screenWidth / numColumns, screenHeight / numRows);
 
 
   useEffect(() => {
@@ -132,7 +137,7 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
         .reduce((max, tile) => tile && tile.value.greaterThan(max.value) ? tile : max, { value: new BigNumber(0) });
   
       const maxAvailableBlock = updatedBlocks[updatedBlocks.length - 1];
-      if (maxTile.value.greaterThan(maxAvailableBlock.multiply(2))) {
+      if (maxTile.value.greaterThan(maxAvailableBlock.multiply(5))) {
         newBlock = maxAvailableBlock.multiply(1);
         updatedBlocks.shift();
         updatedBlocks.push(newBlock);
@@ -203,19 +208,19 @@ const GameScreen: React.FC<GameScreenProps> = ({ gameState, setGameState, DBBloc
         newBlock={newBlock}
         onClose={handleModalClose}
       />
-      <View style={styles.container}>
+      <View style={[styles.container, {width: screenWidth, height: screenHeight}]}>
         <View style={styles.grid}>
           {Array.from({ length: 5 }, (_, colIndex) => (
             <View
               key={colIndex}
-              style={[styles.column, colIndex === 4 && styles.lastColumn]}
+              style={[styles.column, colIndex === 4 && styles.lastColumn, colIndex === 0 && styles.firstColumn, {width: tileSize}]}
             >
               {grid && Array.isArray(grid) ? (
                 grid.map((row, rowIndex) => (
                   <TouchableOpacity
                     key={rowIndex}
                     onPress={() => onTilePress(colIndex)}
-                    style={styles.cell}
+                    style={[styles.cell, {width: tileSize, height: tileSize}]}
                   >
                     {row[colIndex] && (
                      <Tile
@@ -264,8 +269,12 @@ const styles = StyleSheet.create({
     borderRightWidth: 2,
     borderRightColor: '#888',
   },
+  firstColumn: {
+    borderLeftWidth: 2,
+    borderLeftColor: '#888'
+  },
   lastColumn: {
-    borderRightWidth: 0,
+    borderRightWidth: 2,
   },
   cell: {
     justifyContent: 'center',

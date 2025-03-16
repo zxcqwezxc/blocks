@@ -5,11 +5,13 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
+  runOnUI,
+  useFrameCallback
 } from 'react-native-reanimated';
 import { BigNumber } from './BigNumber';
 
-const TILE_SIZE = 70; // Используем размер ячейки сетки
-const GRID_HEIGHT = 7; // Высота сетки для расчёта вертикальной позиции
+const TILE_SIZE = 70;
+const GRID_HEIGHT = 7; 
 
 const COLORS = [
   '#556B2F', '#6A5ACD', '#2F4F4F', '#708090', '#4682B4', '#8FBC8F', '#5F9EA0', '#7B68EE',
@@ -52,22 +54,34 @@ const Tile: React.FC<TileProps> = ({
   useEffect(() => {
     if (value != null && targetRowIndex != null && targetColIndex != null && targetColIndex != undefined && targetRowIndex != undefined) {
       if (targetColIndex > colIndex) {
-        translateX.value = withTiming(targetColIndex + 80, { duration: 150 });
+        runOnUI(() => {
+          translateX.value = withTiming(targetColIndex + 80, { duration: 150 });
+        })();
       }
       if (targetColIndex < colIndex) {
-        translateX.value = withTiming(targetColIndex - 80, { duration: 150 });
+        runOnUI(() => {
+          translateX.value = withTiming(targetColIndex - 80, { duration: 150 });
+        })();
       }
       if (targetRowIndex < rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
+        runOnUI(() => {
+          translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
+        })();
       }
       if (targetRowIndex > rowIndex) {
-        translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
+        runOnUI(() => {
+          translateY.value = withTiming(targetRowIndex - 80 * (rowIndex - targetRowIndex), { duration: 150 });
+        })();
       }
       if (targetRowIndex == rowIndex) {
-        translateY.value = withTiming(rowIndex, { duration: 150 });
+        runOnUI(() => {
+          translateY.value = withTiming(rowIndex, { duration: 150 });
+        })();
       }
       if (targetColIndex == colIndex) {
-        translateX.value = withTiming(colIndex, { duration: 150 });
+        runOnUI(() => {
+          translateX.value = withTiming(colIndex, { duration: 150 });
+        })();
       }
       // Анимация перемещения
       //translateY.value = withTiming(targetRowIndex, { duration: 300 });
@@ -78,8 +92,10 @@ const Tile: React.FC<TileProps> = ({
         // Обычное движение вниз
         translateX.value = withTiming(colIndex, { duration: 150 });
         if (targetColIndex == null) {
+        runOnUI(() => {
           translateY.value = withTiming(100 * (7 - rowIndex), { duration: 0 }); 
           translateY.value = withTiming(rowIndex, { duration: 150 });
+        })();
         }
         scale.value = withSpring(1);
       }
